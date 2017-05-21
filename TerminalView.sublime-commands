@@ -1,0 +1,6 @@
+[
+  {
+    "caption": "Open Terminal View",
+    "command": "terminal_view_open",
+  },
+]

@@ -1,0 +1,47 @@
+# -*- coding: utf-8 -*-
+"""
+    pyte
+    ~~~~
+
+    `pyte` implements a mix of VT100, VT220 and VT520 specification,
+    and aims to support most of the `TERM=linux` functionality.
+
+    Two classes: :class:`~pyte.streams.Stream`, which parses the
+    command stream and dispatches events for commands, and
+    :class:`~pyte.screens.Screen` which, when used with a stream
+    maintains a buffer of strings representing the screen of a
+    terminal.
+
+    .. warning:: From ``xterm/main.c`` "If you think you know what all
+                 of this code is doing, you are probably very mistaken.
+                 There be serious and nasty dragons here" -- nothing
+                 has changed.
+
+    :copyright: (c) 2011-2013 by Selectel, see AUTHORS for details.
+    :license: LGPL, see LICENSE for more details.
+"""
+
+from __future__ import absolute_import
+
+__all__ = ("Screen", "DiffScreen", "HistoryScreen",
+           "Stream", "ByteStream", "DebugStream")
+
+from .screens import Screen, DiffScreen, HistoryScreen
+from .streams import Stream, ByteStream, DebugStream
+
+
+if __debug__:
+    from .compat import str
+
+    def dis(chars):
+        """A :func:`dis.dis` for terminals.
+
+        >>> dis(u"\u0007")
+        BELL
+        >>> dis(u"\x9b20m")
+        SELECT-GRAPHIC-RENDITION 20
+        """
+        if isinstance(chars, str):
+            chars = chars.encode("utf-8")
+
+        return DebugStream().feed(chars)
