@@ -5,7 +5,7 @@ import sublime
 import sublime_plugin
 
 from . import SublimeTerminalView
-from . import linux_pty
+from . import LinuxPty
 from . import utils
 
 # note
@@ -35,7 +35,7 @@ class TerminalViewCore(sublime_plugin.TextCommand):
         self._terminal_rows = 0
         self._terminal_columns = 0
 
-        self._shell = linux_pty.linux_pty("/bin/bash")
+        self._shell = LinuxPty.linux_pty("/bin/bash")
         self._shell_is_running = True
 
         self._schedule_call_to_check_for_screen_resize()

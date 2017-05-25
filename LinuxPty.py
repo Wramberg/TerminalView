@@ -49,7 +49,7 @@ class linux_pty():
             return
 
         #print("Sending " + key)
-        key = keymap.convert_key_to_ansi(key)
+        key = convert_key_to_ansi(key)
         self._send_string(key)
 
         # bytes = key
