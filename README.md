@@ -31,6 +31,7 @@ The plugin should be working fine for many tasks but keep in mind that it has ye
 * Colors
 * Keybindings/handling for meta, alt and maybe some other keys
 * Various customization
+* Copy/paste
 * Lots of other stuff i probably haven't thought of yet
 
 ## Acknowledgements
