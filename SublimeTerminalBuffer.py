@@ -20,8 +20,7 @@ class SublimeTerminalBuffer():
         sublime_view.settings().set("highlight_line", False)
         sublime_view.settings().set("auto_complete_commit_on_tab", False)
         sublime_view.settings().set("draw_centered", False)
-        # Word wrap to avoid horizontal scrollbar (we never wrap anyway)
-        sublime_view.settings().set("word_wrap", True)
+        sublime_view.settings().set("word_wrap", False)
         sublime_view.settings().set("auto_complete", False)
         sublime_view.settings().set("draw_white_space", "none")
         sublime_view.settings().set("draw_indent_guides", False)
@@ -77,13 +76,13 @@ class SublimeTerminalBuffer():
         if pixel_per_line == 0 or pixel_per_char == 0:
             return (0, 0)
 
-        nb_columns = int(pixel_width/pixel_per_char)
-        if nb_columns < 80:
-            nb_columns = 80
+        nb_columns = int(pixel_width/pixel_per_char) - 2
+        if nb_columns < 40:
+            nb_columns = 40
 
         nb_rows = int(pixel_height/pixel_per_line)
-        if nb_rows < 24:
-            nb_rows = 24
+        if nb_rows < 20:
+            nb_rows = 20
 
         return (nb_rows, nb_columns)
 
