@@ -35,7 +35,13 @@ class TerminalViewCore(sublime_plugin.TextCommand):
         self._terminal_rows = 0
         self._terminal_columns = 0
 
-        self._shell = LinuxPty.LinuxPty("/bin/bash")
+        if sublime.platform() == "linux":
+            self._shell = LinuxPty.LinuxPty("/bin/bash")
+        elif sublime.platform() == "osx":
+            self._shell = LinuxPty.LinuxPty("/bin/bash", "-l")
+        else: # sublime.platform() == "windows"
+            sublime.error_message("Windows not supported!")
+            return
         self._shell_is_running = True
 
         self._schedule_call_to_check_for_screen_resize()
