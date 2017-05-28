@@ -6,6 +6,8 @@ A Linux plugin for Sublime Text 3 that allows for terminals inside editor views.
 * Password prompts
 * etc.
 
+![example.gif](https://raw.githubusercontent.com/Wramberg/TerminalView/master/example.gif "TerminalView Demonstration")
+
 ## Installation
 Run
 ```
