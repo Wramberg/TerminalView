@@ -6,7 +6,7 @@ import fcntl
 import termios
 
 
-class linux_pty():
+class LinuxPty():
     def __init__(self, cmd):
         self._cmd = cmd
         self._env = os.environ.copy()
@@ -23,7 +23,7 @@ class linux_pty():
         return
 
     def receive_output(self, max_read_size):
-        (r,w,x) = select.select([self._pty], [], [], 0)
+        (r, w, x) = select.select([self._pty], [], [], 0)
         if not r:
             return None
 
@@ -44,44 +44,30 @@ class linux_pty():
     def send_keypress(self, key, ctrl=False, alt=False, shift=False, super=False):
         # If control was pressed together with single key send the combination
         # to the shell
-        if ctrl and len(key)==1:
+        if ctrl and len(key) is 1:
             self._send_control_key_combination(key)
             return
 
-        #print("Sending " + key)
         key = convert_key_to_ansi(key)
         self._send_string(key)
-
-        # bytes = key
-        # if key in self.KEYMAP:
-        #     d = self.KEYMAP[key]
-        #     flags = 0
-        #     flags |= keymap.CTRL * ctrl
-        #     if isinstance(d, dict):
-        #         if flags in d:
-        #             bytes = d[flags]
-        #         else:
-        #             bytes = key
-        #     else:
-        #         bytes = d
 
     def _send_control_key_combination(self, key):
         # Convert to lower case and get unicode representation of char
         char = key.lower()
         a = ord(char)
 
-        # If its a regular char in the alphabet... do something
         if a>=97 and a<=122:
             a = a - ord('a') + 1
-            print("Sending char %s" % (chr(a)))
             return self._send_string(chr(a))
 
         # Handle special chars
-        d = {'@':0, '`':0, '[':27, '{':27, '\\':28, '|':28, ']':29, '}': 29,
-            '^':30, '~':30,'_':31, '?':127}
-        if char not in d:
-            return
-        return self._send_string(chr(d[char]))
+        d = {'@': 0, '`': 0, '[': 27, '{': 27, '\\': 28, '|': 28, ']': 29,
+             '}': 29, '^': 30, '~': 30, '_': 31, '?': 127}
+
+        if char in d:
+            self._send_string(chr(d[char]))
+
+        return None
 
     def _send_string(self, string):
         if self.is_running():

@@ -1,6 +1,6 @@
 [
   {
-    "caption": "Open Terminal View",
+    "caption": "Open Terminal View - Bash",
     "command": "terminal_view_open",
   },
 ]

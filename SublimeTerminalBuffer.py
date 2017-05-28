@@ -7,7 +7,7 @@ from . import utils
 global_keypress_callbacks = {}
 
 
-class SublimeTerminalView():
+class SublimeTerminalBuffer():
     def __init__(self, sublime_view, title=None):
         self._view = sublime_view
         tab_name = "Terminal"
@@ -20,7 +20,7 @@ class SublimeTerminalView():
         sublime_view.settings().set("highlight_line", False)
         sublime_view.settings().set("auto_complete_commit_on_tab", False)
         sublime_view.settings().set("draw_centered", False)
-         # to avoid horizontal scrollbar (we never wrap anyway)
+        # Word wrap to avoid horizontal scrollbar (we never wrap anyway)
         sublime_view.settings().set("word_wrap", True)
         sublime_view.settings().set("auto_complete", False)
         sublime_view.settings().set("draw_white_space", "none")
@@ -45,20 +45,11 @@ class SublimeTerminalView():
 
     def update_view(self):
         if len(self._screen.dirty) > 0:
-            self._view.run_command("terminal_view_update_lines", {"lines": list(self._screen.dirty), "display": self._screen.display})
+            update = {"lines": list(self._screen.dirty), "display": self._screen.display}
+            self._view.run_command("terminal_view_update_lines", update)
 
         self._update_cursor()
         self._screen.dirty.clear()
-
-    # def redraw_entire_view(self):
-    #     lines_to_update = OrderedDict()
-    #     for i in range(len(self._screen.display)):
-    #         # For some reason Sublime Text does not like integer keys
-    #         lines_to_update[str(i)] = self._screen.display[i]
-    #         self._view.run_command("terminal_view_update_lines", {"lines_dict": lines_to_update})
-    #         self._screen.dirty.clear()
-
-    #     self._update_cursor()
 
     def is_open(self):
         """
@@ -66,7 +57,7 @@ class SublimeTerminalView():
         """
         if self._view.window() is not None:
             return True
-        # todo clean global_keypress_callbacks
+
         return False
 
     def close(self):
@@ -112,7 +103,15 @@ class TerminalViewMoveCursor(sublime_plugin.TextCommand):
 class TerminalViewKeypress(sublime_plugin.TextCommand):
     def run(self, edit, key, ctrl=False, alt=False, shift=False, meta=False):
         if type(key) is not str:
-            utils.log_to_console("Got keypress which non-string key")
+            sublime.error_message("Terminal View: Got keypress with non-string key")
+            return
+
+        if alt:
+            sublime.error_message("Terminal View: Alt key is not supported yet")
+            return
+
+        if meta:
+            sublime.error_message("Terminal View: Meta key is not supported yet")
             return
 
         out_str = "Keypress registered: "
