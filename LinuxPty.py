@@ -75,8 +75,8 @@ class LinuxPty():
 
 
 _LINUX_KEY_MAP = {
-    "enter": "\n",
-    "backspace": "\b",
+    "enter": "\r",
+    "backspace": "\x7f",
     "tab": "\t",
     "space": " ",
     "escape": "\x1b",
@@ -84,8 +84,8 @@ _LINUX_KEY_MAP = {
     "up": "\x1b[A",
     "right": "\x1b[C",
     "left": "\x1b[D",
-    "home": "\x1b[H",
-    "end": "\x1b[F",
+    "home": "\x1b[1~",
+    "end": "\x1b[4~",
     "pageup": "\x1b[5~",
     "pagedown": "\x1b[6~",
     "delete": "\x1b[3~",
