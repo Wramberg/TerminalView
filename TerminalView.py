@@ -16,19 +16,30 @@ from . import utils
 # fix word wrap in buffer - turns out we do wrap when window is very small
 # allow for customization of what shell (bash, etc.)
 
-# Main entry point for opening a terminal view. Only one instance of this class
-# per sublime window. Once a terminal view has been opened the
-# TerminalViewCore instance for that view is called to handle everything.
-class TerminalViewOpen(sublime_plugin.WindowCommand):
-    def run(self):
-        win = sublime.active_window()
-        view = win.new_file()
-        view.run_command("terminal_view_core")
+class TerminalViewOpen(sublime_plugin.TextCommand):
+    """Main entry point for opening a terminal view. Only one instance of this 
+    class per sublime window. Once a terminal view has been opened the
+    TerminalViewCore instance for that view is called to handle everything. The 
+    working directory is either the directory of the current file, or if that
+    doesn't exist, the current folder, or if that doesn't exist, the project 
+    folder, or if that doesn't exist, your $HOME. You may override the current
+    working directory by supplying it as the argument "working_dir"."""
+    
+    def run(self, edit, working_dir=None):
+        terminal = self.view.window().new_file()
+        value = "${project_path:${folder:${file_path}}}"
+        variables = self.view.window().extract_variables()
+        if not working_dir:
+            working_dir = sublime.expand_variables(value, variables)
+            if working_dir == "":
+                working_dir = os.environ["HOME"]
+        terminal.run_command("terminal_view_core", args={"working_dir": working_dir})
 
-
-# Main command to glue everything together. One instance of this per view.
 class TerminalViewCore(sublime_plugin.TextCommand):
-    def run(self, edit):
+    """Main command to glue everything together. One instance of this per view.
+    """
+    
+    def run(self, edit, working_dir=None):
         self._terminal_buffer = SublimeTerminalBuffer.SublimeTerminalBuffer(self.view, "bash")
         self._terminal_buffer.set_keypress_callback(self.terminal_view_keypress_callback)
         self._terminal_buffer_is_open = True
@@ -36,9 +47,9 @@ class TerminalViewCore(sublime_plugin.TextCommand):
         self._terminal_columns = 0
 
         if sublime.platform() == "linux":
-            self._shell = LinuxPty.LinuxPty("/bin/bash")
+            self._shell = LinuxPty.LinuxPty(working_dir, "/bin/bash")
         elif sublime.platform() == "osx":
-            self._shell = LinuxPty.LinuxPty("/bin/bash", "-l")
+            self._shell = LinuxPty.LinuxPty(working_dir, "/bin/bash", "-l")
         else: # sublime.platform() == "windows"
             sublime.error_message("Windows not supported!")
             return
