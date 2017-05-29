@@ -8,12 +8,9 @@ global_keypress_callbacks = {}
 
 
 class SublimeTerminalBuffer():
-    def __init__(self, sublime_view, title=None):
+    def __init__(self, sublime_view, title):
         self._view = sublime_view
-        tab_name = "Terminal"
-        if title is not None:
-            tab_name += " ("+title+")"
-        sublime_view.set_name(tab_name)
+        sublime_view.set_name(title)
         sublime_view.set_scratch(True)
         sublime_view.set_read_only(True)
         sublime_view.settings().set("gutter", False)
