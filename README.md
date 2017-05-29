@@ -29,7 +29,7 @@ which does the same. If you want to use another shell or have another title you 
 You can close the terminal again by closing the view or exitting the shell (by e.g. hitting ctrl-d).
 
 ## Keybindings
-The terminal view should be ready to use as you would with any other terminal. There are some caveats though since many keys are needed in a typical terminal. First of all, the TerminalView plugin shadows a lot of ST3 keybindings (only when in a terminal view of course). To avoid this you can put the keybindings you do not want shadowed in your user keymap file. Second of all, some keybindings in your user keymap file may shadow necessary TerminalView keybindings. To avoid this you must find the necessary keybindings in the TerminalView keymap file and copy it to your user keymap file.
+The terminal view should be ready to use as you would with any other terminal. There are some caveats though since many keys are needed in a typical terminal. First of all, the TerminalView plugin shadows a lot of ST3 keybindings (only when in a terminal view of course). To avoid this you can put the keybindings you do not want shadowed in your user keymap file. Second of all, some keybindings in your user keymap file may shadow necessary TerminalView keybindings. To avoid this you must find the necessary keybindings in the TerminalView keymap file and copy them to your user keymap file.
 
 ## Limitations
 The plugin should be working fine for many tasks but keep in mind that it has yet to be tested thoroughly and still lacks some functionality, this includes
