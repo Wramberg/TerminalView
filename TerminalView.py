@@ -7,9 +7,6 @@ from . import SublimeTerminalBuffer
 from . import LinuxPty
 from . import utils
 
-# Todo
-# clean global_keypress_callback when terminal is closed
-# maybe reset terminal on resize ?
 
 class TerminalViewOpen(sublime_plugin.WindowCommand):
     """

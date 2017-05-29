@@ -154,6 +154,13 @@ class TerminalViewUpdateLines(sublime_plugin.TextCommand):
         self.view.set_read_only(True)
 
 
+class TerminalViewOnCloseCleanup(sublime_plugin.EventListener):
+    def on_close(self, view):
+        if view.id() in global_keypress_callbacks:
+            utils.log_to_console("Cleaning up after view %i closed" % view.id())
+            del global_keypress_callbacks[view.id()]
+
+
 def set_color_scheme(view):
     """
     Set color scheme for view
