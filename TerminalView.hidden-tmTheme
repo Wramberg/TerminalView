@@ -17,7 +17,6 @@
             <key>caret</key>
             <string>#ffffff</string>
 
-
             <key>lineHighlight</key>
             <string>#ffffff00</string>
             <key>invisibles</key>
@@ -28,12 +27,12 @@
             <key>selectionBorder</key>
             <string>#ffffff00</string>
             <key>inactiveSelection</key>
-            <string>#ffffff00</string>
+            <string>#ffffff40</string>
 
             <key>shadow</key>
             <string>#00000080</string>
             <key>shadowWidth</key>
-            <string>10</string>
+            <string>0</string>
          </dict>
       </dict>
 

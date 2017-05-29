@@ -28,10 +28,24 @@ which does the same. If you want to use another shell or have another title you 
 ```
 but keep in mind that only bash is tested so this is **very experimental**. If you experience weird behavior the only workaround is falling back to bash and running e.g. IPython or ZSH through that.
 
-When you are done you can close the terminal by closing the view or exitting the shell (by e.g. hitting ctrl-d).
+When you are done you can close the terminal by closing the view (ctrl+shift+q or ctrl+shift+w as default) or exitting the shell (by e.g. hitting ctrl+d).
 
 ## Keybindings
-The terminal view should be ready to use as you would with any other terminal. There are some caveats though since many keys are needed in a typical terminal. First of all, the TerminalView plugin shadows a lot of ST3 keybindings (only when in a terminal view of course). To avoid this you can put the keybindings you do not want shadowed in your user keymap file. Second of all, some keybindings in your user keymap file may shadow necessary TerminalView keybindings. To avoid this you must find the necessary keybindings in the TerminalView keymap file and copy them to your user keymap file.
+The terminal view should be ready to use as you would with any other terminal. There are some caveats though since many keys are needed in a typical terminal workflow.
+
+First of all, the TerminalView plugin shadows a lot of ST3 keybindings (only when in a terminal view of course). To avoid this you can put the keybindings you do not want shadowed in your user keymap file. For example, if you insist on using ctrl-w to close the current view even when in a terminal view put the following line in your user keymap file
+
+```
+{ "keys": ["ctrl+w"], "command": "close" },
+```
+
+Second of all, to avoid shadowing too many keys some are left out by default. If you find yourself missing a keybinding like, e.g., Alt+f you can simply insert it in your user keymap file
+```
+{"keys": ["alt+f"], "command": "terminal_view_keypress", "args": {"key": "f", "alt": true, "ctrl": false}, "context": [{"key": "setting.terminal_view"}]},
+```
+The default TerminalView keymap file is available in the menu: *Preferences->Package Settings-> TerminalView*.
+
+Lastly, some keybindings in your user keymap file may shadow necessary TerminalView keybindings. To avoid this you must find the necessary keybindings in the TerminalView keymap file and copy them to your user keymap file similar to above.
 
 ## Limitations
 The plugin should be working fine for many tasks but keep in mind that it has yet to be tested thoroughly and still lacks some functionality, this includes
@@ -41,8 +55,10 @@ The plugin should be working fine for many tasks but keep in mind that it has ye
 * Various customization
 * Copy/paste
 * Scrolling
-* Menu entries in ST menubar
 * Lots of other stuff i probably haven't thought of yet
+
+## Color scheme
+The color scheme can be tweaked by copying the default color scheme into the user color scheme file. Both of these files are availble in the menu: *Preferences->Package Settings->TerminalView*.
 
 ## Acknowledgements
 During development the SublimePTY (https://github.com/wuub/SublimePTY) project was a good source of inspiration for some of the problems that occured. You can probably find a few bits and pieces from it in this plugin.
