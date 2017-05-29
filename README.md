@@ -26,7 +26,7 @@ which does the same. If you want to use another shell or have another title you 
 ```
 { "keys": ["ctrl+alt+1"], "command": "terminal_view_open", "args": {"cmd": "/usr/bin/ipython", "title": "Terminal (IPython)"}},
 ```
-but keep in mind that only bash so this is **very experimental**. If you experience weird behavior the only workaround is falling back to bash and running e.g. IPython or ZSH through that.
+but keep in mind that only bash is tested so this is **very experimental**. If you experience weird behavior the only workaround is falling back to bash and running e.g. IPython or ZSH through that.
 
 When you are done you can close the terminal by closing the view or exitting the shell (by e.g. hitting ctrl-d).
 
