@@ -19,35 +19,44 @@ class TerminalViewOpen(sublime_plugin.WindowCommand):
     class per sublime window. Once a terminal view has been opened the
     TerminalViewCore instance for that view is called to handle everything.
     """
-    def run(self, cmd="/bin/bash -l", title="Terminal"):
+
+    def run(self, 
+            cmd="/bin/bash -l", 
+            title="Terminal", 
+            cwd="${project_path:${folder:${file_path}}}"):
         """
         Open a new terminal view
 
         Args:
             cmd (str, optional): Shell to execute. Detauls to 'bash -l'.
             title (str, optional): Terminal view title. Defaults to 'Terminal'.
+            cwd (str, optional): The working dir to start out with. Defaults to
+                                 either the project path, the currently open
+                                 folder, the directory of the current file, or
+                                 $HOME, in that order of precedence.
         """
         if sublime.platform() not in ("linux", "osx"):
             sublime.error_message("TerminalView: Unsupported OS")
             return
-
-        win = sublime.active_window()
-        view = win.new_file()
-        view.run_command("terminal_view_core", {"title": title, "cmd": cmd})
-
+        cwd = sublime.expand_variables(cwd, self.window.extract_variables())
+        if not cwd:
+            cwd = os.environ["HOME"]
+        self.window.new_file().run_command("terminal_view_core", 
+                args={"cmd": cmd, "title": title, "cwd": cwd})
 
 class TerminalViewCore(sublime_plugin.TextCommand):
     """
     Main command to glue all parts together in a single instance of a terminal
     view. For each sublime view a instance of this class exists.
     """
-    def run(self, edit, cmd, title):
+    def run(self, edit, cmd, title, cwd):
         """
         Initialize the view in which this command is called as a terminal view.
 
         Args:
             cmd (str): Command to execute as shell (e.g. 'bash -l').
             title (str): Terminal view title.
+            cwd (str): The working directory to start out with.
         """
         self._terminal_buffer = SublimeTerminalBuffer.SublimeTerminalBuffer(self.view, title)
         self._terminal_buffer.set_keypress_callback(self.terminal_view_keypress_callback)
@@ -59,7 +68,7 @@ class TerminalViewCore(sublime_plugin.TextCommand):
         # before we read initial size
         self._terminal_buffer.update_view()
 
-        self._shell = LinuxPty.LinuxPty(cmd.split())
+        self._shell = LinuxPty.LinuxPty(cmd.split(), cwd)
         self._shell_is_running = True
 
         # Do initial resize instantly to avoid resizing after first shell prompt

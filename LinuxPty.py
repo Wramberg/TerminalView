@@ -11,14 +11,15 @@ except:
 
 
 class LinuxPty():
-    def __init__(self, cmd):
+    def __init__(self, cmd, cwd):
         self._cmd = cmd
         self._env = os.environ.copy()
         self._env["TERM"] = "linux"
         (self._pty, self._pts) = os.openpty()
         self._process = subprocess.Popen(self._cmd, stdin=self._pts,
                                          stdout=self._pts, stderr=self._pts, shell=False,
-                                         env=self._env, close_fds=True, preexec_fn=os.setsid)
+                                         env=self._env, close_fds=True, preexec_fn=os.setsid,
+                                         cwd=cwd)
 
     def stop(self):
         if self.is_running():
