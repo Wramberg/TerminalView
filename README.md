@@ -26,7 +26,9 @@ which does the same. If you want to use another shell or have another title you 
 ```
 { "keys": ["ctrl+alt+1"], "command": "terminal_view_open", "args": {"cmd": "/usr/bin/ipython", "title": "Terminal (IPython)"}},
 ```
-You can close the terminal again by closing the view or exitting the shell (by e.g. hitting ctrl-d).
+but keep in mind that only bash is tested. If you experience weird behavior the only workaround is falling back to bash and running e.g. IPython or ZSH through that.
+
+When you are done you can close the terminal again by closing the view or exitting the shell (by e.g. hitting ctrl-d).
 
 ## Keybindings
 The terminal view should be ready to use as you would with any other terminal. There are some caveats though since many keys are needed in a typical terminal. First of all, the TerminalView plugin shadows a lot of ST3 keybindings (only when in a terminal view of course). To avoid this you can put the keybindings you do not want shadowed in your user keymap file. Second of all, some keybindings in your user keymap file may shadow necessary TerminalView keybindings. To avoid this you must find the necessary keybindings in the TerminalView keymap file and copy them to your user keymap file.
