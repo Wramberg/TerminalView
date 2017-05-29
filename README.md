@@ -1,5 +1,5 @@
 # TerminalView
-A Linux plugin for Sublime Text 3 that allows for terminals inside editor views. The plugin uses a pseudo-terminal to start the underlying shell which means it supports
+A Linux/macOS plugin for Sublime Text 3 that allows for terminals inside editor views. The plugin uses a pseudo-terminal to start the underlying shell which means it supports
 
 * Interactive applications
 * Piping
@@ -18,14 +18,20 @@ git clone https://github.com/Wramberg/TerminalView.git $HOME/.config/sublime-tex
 to install TerminalView.
 
 ## Usage
-Bring up your command palette and search for "Terminal View". Alternatively you can bind a key in your keymap to the "terminal_view_open" command, example
+Simply bring up your command pallete and search for "Terminal View". This opens a terminal using 'bash -l' as shell. By default there is no keybinding for opening a terminal view but you can bind a key in your keymap to the "terminal_view_open" command:
 ```
 { "keys": ["ctrl+alt+t"], "command": "terminal_view_open" },
 ```
-You can close the terminal again by closing the view or exitting the shell (by e.g. hitting ctrl-d).
+which does the same. If you want to use another shell or have another title you can specify this as arguments to the "terminal_view_open" command:
+```
+{ "keys": ["ctrl+alt+1"], "command": "terminal_view_open", "args": {"cmd": "/usr/bin/ipython", "title": "Terminal (IPython)"}},
+```
+but keep in mind that only bash is tested. If you experience weird behavior the only workaround is falling back to bash and running e.g. IPython or ZSH through that.
+
+When you are done you can close the terminal again by closing the view or exitting the shell (by e.g. hitting ctrl-d).
 
 ## Keybindings
-The terminal view should be ready to use as you would with any other terminal. There are some caveats though since many keys are needed in a typical terminal. First of all, the TerminalView plugin shadows a lot of ST3 keybindings (only when in a terminal view of course). To avoid this you can put the keybindings you do not want shadowed in your custom user keymap file. Second of all, some keybindings in your custom user keymap file may shadow necessary TerminalView keybindings. To avoid this you must find the necessary keybindings in the TerminalView keymap file and copy it to your custom keymap file.
+The terminal view should be ready to use as you would with any other terminal. There are some caveats though since many keys are needed in a typical terminal. First of all, the TerminalView plugin shadows a lot of ST3 keybindings (only when in a terminal view of course). To avoid this you can put the keybindings you do not want shadowed in your user keymap file. Second of all, some keybindings in your user keymap file may shadow necessary TerminalView keybindings. To avoid this you must find the necessary keybindings in the TerminalView keymap file and copy them to your user keymap file.
 
 ## Limitations
 The plugin should be working fine for many tasks but keep in mind that it has yet to be tested thoroughly and still lacks some functionality, this includes
@@ -34,7 +40,7 @@ The plugin should be working fine for many tasks but keep in mind that it has ye
 * Keybindings/handling for meta, alt and maybe some other keys
 * Various customization
 * Copy/paste
-* Proper startup (right now resizing during startup ends up hiding the first line)
+* Scrolling
 * Lots of other stuff i probably haven't thought of yet
 
 ## Acknowledgements

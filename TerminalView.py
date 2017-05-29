@@ -10,76 +10,121 @@ from . import utils
 
 # Todo
 # clean global_keypress_callback when terminal is closed
-# screen resize test and fix when small col
 # colors
 # maybe reset terminal on resize ?
-# fix word wrap in buffer - turns out we do wrap when window is very small
-# allow for customization of what shell (bash, etc.)
 
 class TerminalViewOpen(sublime_plugin.TextCommand):
-    """Main entry point for opening a terminal view. Only one instance of this 
-    class per sublime window. Once a terminal view has been opened the
-    TerminalViewCore instance for that view is called to handle everything. The 
-    working directory is either the directory of the current file, or if that
-    doesn't exist, the current folder, or if that doesn't exist, the project 
-    folder, or if that doesn't exist, your $HOME. You may override the current
-    working directory by supplying it as the argument "working_dir"."""
-    
-    def run(self, edit, working_dir=None):
-        terminal = self.view.window().new_file()
-        value = "${project_path:${folder:${file_path}}}"
-        variables = self.view.window().extract_variables()
-        if not working_dir:
-            working_dir = sublime.expand_variables(value, variables)
-            if working_dir == "":
-                working_dir = os.environ["HOME"]
-        terminal.run_command("terminal_view_core", args={"working_dir": working_dir})
-
-class TerminalViewCore(sublime_plugin.TextCommand):
     """Main command to glue everything together. One instance of this per view.
     """
-    
-    def run(self, edit, working_dir=None):
-        self._terminal_buffer = SublimeTerminalBuffer.SublimeTerminalBuffer(self.view, "bash")
+
+    def run(self, 
+            edit, 
+            cmd="/bin/bash -l", 
+            title="Terminal", 
+            cwd="${project_path:${folder:${file_path}}}"):
+        """
+        Open a new terminal view
+
+        Args:
+            cmd (str, optional): Shell to execute. Detauls to 'bash -l'.
+            title (str, optional): Terminal view title. Defaults to 'Terminal'.
+            cwd (str, optional): The working dir to start out with. Defaults to
+                                 either the project path, the currently open
+                                 folder, the directory of the current file, or
+                                 $HOME, in that order of precedence.
+        """
+        if sublime.platform() not in ("linux", "osx"):
+            sublime.error_message("TerminalView: Unsupported OS")
+            return
+        window = self.view.window()
+        cwd = sublime.expand_variables(cwd, window.extract_variables())
+        if not cwd:
+            cwd = os.environ["HOME"]
+        window.new_file().run_command("terminal_view_core", 
+                args={"cmd": cmd, "title": title, "cwd": cwd})
+
+class TerminalViewCore(sublime_plugin.TextCommand):
+    """
+    Main command to glue all parts together in a single instance of a terminal
+    view. For each sublime view a instance of this class exists.
+    """
+    def run(self, edit, cmd, title, cwd):
+        """
+        Initialize the view in which this command is called as a terminal view.
+
+        Args:
+            cmd (str): Command to execute as shell (e.g. 'bash -l').
+            title (str): Terminal view title.
+            cwd (str): The working directory to start out with.
+        """
+        self._terminal_buffer = SublimeTerminalBuffer.SublimeTerminalBuffer(self.view, title)
         self._terminal_buffer.set_keypress_callback(self.terminal_view_keypress_callback)
         self._terminal_buffer_is_open = True
         self._terminal_rows = 0
         self._terminal_columns = 0
 
-        if sublime.platform() == "linux":
-            self._shell = LinuxPty.LinuxPty(working_dir, "/bin/bash")
-        elif sublime.platform() == "osx":
-            self._shell = LinuxPty.LinuxPty(working_dir, "/bin/bash", "-l")
-        else: # sublime.platform() == "windows"
-            sublime.error_message("Windows not supported!")
-            return
+        # Do an initial buffer draw to fill out terminal with blank spaces
+        # before we read initial size
+        self._terminal_buffer.update_view()
+
+        self._shell = LinuxPty.LinuxPty(cmd.split(), cwd)
         self._shell_is_running = True
 
-        self._schedule_call_to_check_for_screen_resize()
+        # Do initial resize instantly to avoid resizing after first shell prompt
+        self._schedule_call_to_check_for_screen_resize(delay=0)
         self._schedule_call_to_poll_shell_output()
         self._schedule_call_to_refresh_terminal_view()
         self._schedule_call_to_check_if_terminal_closed_or_shell_exited()
 
     def terminal_view_keypress_callback(self, key, ctrl=False, alt=False, shift=False, meta=False):
+        """
+        Callback when a keypress is registered in the Sublime Terminal buffer.
+
+        Args:
+            key (str): String describing pressed key. May be a name like 'home'.
+            ctrl (boolean, optional)
+            alt (boolean, optional)
+            shift (boolean, optional)
+            meta (boolean, optional)
+        """
         self._shell.send_keypress(key, ctrl, alt, shift, meta)
 
-    def _schedule_call_to_check_for_screen_resize(self):
+    def _schedule_call_to_check_for_screen_resize(self, delay=250):
+        """
+        Schedule a call to the screen resize member function in the Sublime Text
+        main thread.
+        """
         if not self._stopped():
-            sublime.set_timeout(self._check_for_screen_resize, 250)
+            sublime.set_timeout(self._check_for_screen_resize, delay)
 
     def _schedule_call_to_poll_shell_output(self):
+        """
+        Schedule a call to the shell polling member function in the Sublime Text
+        main thread.
+        """
         if not self._stopped():
             sublime.set_timeout(self._poll_shell_output, 5)
 
     def _schedule_call_to_refresh_terminal_view(self):
+        """
+        Schedule a call to the terminal refreshing member function in the
+        Sublime Text main thread.
+        """
         if not self._stopped():
             sublime.set_timeout(self._refresh_terminal_view, 20)
 
     def _schedule_call_to_check_if_terminal_closed_or_shell_exited(self):
+        """
+        Schedule a call to the exit check member function in the Sublime Text
+        main thread.
+        """
         if not self._stopped():
             sublime.set_timeout(self._check_if_terminal_closed_or_shell_exited, 100)
 
     def _poll_shell_output(self):
+        """
+        Poll the output of the shell
+        """
         max_read_size = 4096
         data = self._shell.receive_output(max_read_size)
         if data is not None:
@@ -89,10 +134,17 @@ class TerminalViewCore(sublime_plugin.TextCommand):
         self._schedule_call_to_poll_shell_output()
 
     def _refresh_terminal_view(self):
+        """
+        Update the terminal view so its showing the latest data.
+        """
         self._terminal_buffer.update_view()
         self._schedule_call_to_refresh_terminal_view()
 
     def _check_if_terminal_closed_or_shell_exited(self):
+        """
+        Check if the terminal was closed or the shell exited. If so stop
+        everything.
+        """
         self._terminal_buffer_is_open = self._terminal_buffer.is_open()
         self._shell_is_running = self._shell.is_running()
 
@@ -102,6 +154,10 @@ class TerminalViewCore(sublime_plugin.TextCommand):
         self._schedule_call_to_check_if_terminal_closed_or_shell_exited()
 
     def _check_for_screen_resize(self):
+        """
+        Check if the terminal view was resized. If so update the screen size of
+        the terminal and notify the shell.
+        """
         (rows, cols) = self._terminal_buffer.view_size()
         row_diff =  abs(self._terminal_rows - rows)
         col_diff =  abs(self._terminal_columns - cols)
@@ -119,6 +175,9 @@ class TerminalViewCore(sublime_plugin.TextCommand):
         self._schedule_call_to_check_for_screen_resize()
 
     def _stop(self):
+        """
+        Stop the terminal and close everything down.
+        """
         if self._terminal_buffer_is_open:
             self._terminal_buffer.close()
             self._terminal_buffer_is_open = False
@@ -128,6 +187,9 @@ class TerminalViewCore(sublime_plugin.TextCommand):
             self._shell_is_running = False
 
     def _stopped(self):
+        """
+        Check if the terminal and shell are stopped.
+        """
         if self._shell_is_running and self._terminal_buffer_is_open:
             return False
         return True
