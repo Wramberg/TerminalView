@@ -14,7 +14,10 @@ from . import utils
 # maybe reset terminal on resize ?
 
 class TerminalViewOpen(sublime_plugin.WindowCommand):
-    """Main command to glue everything together. One instance of this per view.
+    """
+    Main entry command for opening a terminal view. Only one instance of this
+    class per sublime window. Once a terminal view has been opened the
+    TerminalViewCore instance for that view is called to handle everything.
     """
 
     def run(self, 
