@@ -35,6 +35,10 @@ class TerminalViewCore(sublime_plugin.TextCommand):
         self._terminal_rows = 0
         self._terminal_columns = 0
 
+        # Do an initial buffer draw to fill out terminal with blank spaces
+        # before we read initial size
+        self._terminal_buffer.update_view()
+
         if sublime.platform() == "linux":
             self._shell = LinuxPty.LinuxPty("/bin/bash")
         elif sublime.platform() == "osx":
@@ -44,7 +48,8 @@ class TerminalViewCore(sublime_plugin.TextCommand):
             return
         self._shell_is_running = True
 
-        self._schedule_call_to_check_for_screen_resize()
+        # Do initial resize instantly to avoid resizing after first shell prompt
+        self._schedule_call_to_check_for_screen_resize(delay=0)
         self._schedule_call_to_poll_shell_output()
         self._schedule_call_to_refresh_terminal_view()
         self._schedule_call_to_check_if_terminal_closed_or_shell_exited()
@@ -52,9 +57,9 @@ class TerminalViewCore(sublime_plugin.TextCommand):
     def terminal_view_keypress_callback(self, key, ctrl=False, alt=False, shift=False, meta=False):
         self._shell.send_keypress(key, ctrl, alt, shift, meta)
 
-    def _schedule_call_to_check_for_screen_resize(self):
+    def _schedule_call_to_check_for_screen_resize(self, delay=250):
         if not self._stopped():
-            sublime.set_timeout(self._check_for_screen_resize, 250)
+            sublime.set_timeout(self._check_for_screen_resize, delay)
 
     def _schedule_call_to_poll_shell_output(self):
         if not self._stopped():
