@@ -37,10 +37,11 @@ class LinuxPty():
         return os.read(self._pty, max_read_size)
 
     def update_screen_size(self, lines, columns):
-        # Note, assume ws_xpixel and ws_ypixel are zero.
-        TIOCSWINSZ = getattr(termios, 'TIOCSWINSZ', -2146929561)
-        s = struct.pack('HHHH', lines, columns, 0, 0)
-        fcntl.ioctl(self._pts, TIOCSWINSZ, s)
+        if self.is_running:
+            # Note, assume ws_xpixel and ws_ypixel are zero.
+            TIOCSWINSZ = getattr(termios, 'TIOCSWINSZ', -2146929561)
+            s = struct.pack('HHHH', lines, columns, 0, 0)
+            fcntl.ioctl(self._pts, TIOCSWINSZ, s)
 
     def is_running(self):
         return self._process is not None and self._process.poll() is None
