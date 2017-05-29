@@ -13,12 +13,11 @@ from . import utils
 # colors
 # maybe reset terminal on resize ?
 
-class TerminalViewOpen(sublime_plugin.TextCommand):
+class TerminalViewOpen(sublime_plugin.WindowCommand):
     """Main command to glue everything together. One instance of this per view.
     """
 
     def run(self, 
-            edit, 
             cmd="/bin/bash -l", 
             title="Terminal", 
             cwd="${project_path:${folder:${file_path}}}"):
@@ -36,11 +35,10 @@ class TerminalViewOpen(sublime_plugin.TextCommand):
         if sublime.platform() not in ("linux", "osx"):
             sublime.error_message("TerminalView: Unsupported OS")
             return
-        window = self.view.window()
-        cwd = sublime.expand_variables(cwd, window.extract_variables())
+        cwd = sublime.expand_variables(cwd, self.window.extract_variables())
         if not cwd:
             cwd = os.environ["HOME"]
-        window.new_file().run_command("terminal_view_core", 
+        self.window.new_file().run_command("terminal_view_core", 
                 args={"cmd": cmd, "title": title, "cwd": cwd})
 
 class TerminalViewCore(sublime_plugin.TextCommand):
