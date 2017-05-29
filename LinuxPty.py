@@ -2,8 +2,12 @@ import os
 import select
 import subprocess
 import struct
-import fcntl
-import termios
+
+try:
+    import fcntl
+    import termios
+except:
+    pass
 
 
 class LinuxPty():
