@@ -1,4 +1,8 @@
 [
+    // Custom TermivalView keybindings
+    {"keys": ["ctrl+shift+q"], "command": "close", "context": [{"key": "setting.terminal_view"}]},
+    {"keys": ["ctrl+shift+w"], "command": "close", "context": [{"key": "setting.terminal_view"}]},
+
     // Basic keys that are always needed
     {"keys": ["up"], "command": "terminal_view_keypress","args": {"key": "up", "alt": false, "ctrl": false, "shift": false, "meta": false}, "context": [{"key": "setting.terminal_view"}]},
     {"keys": ["down"], "command": "terminal_view_keypress", "args": {"key": "down", "alt": false, "ctrl": false, "shift": false, "meta": false}, "context": [{"key": "setting.terminal_view"}]},
@@ -43,32 +47,6 @@
     {"keys": ["ctrl+v"], "command": "terminal_view_keypress", "args": {"key": "v", "alt": false, "ctrl": true, "shift": false, "meta": false}, "context": [{"key": "setting.terminal_view"}]},
     {"keys": ["ctrl+x"], "command": "terminal_view_keypress", "args": {"key": "x", "alt": false, "ctrl": true, "shift": false, "meta": false}, "context": [{"key": "setting.terminal_view"}]},
     {"keys": ["ctrl+y"], "command": "terminal_view_keypress", "args": {"key": "y", "alt": false, "ctrl": true, "shift": false, "meta": false}, "context": [{"key": "setting.terminal_view"}]},
-    {"keys": ["ctrl+W"], "command": "terminal_view_keypress", "args": {"key": "W", "alt": false, "ctrl": true, "shift": false, "meta": false}, "context": [{"key": "setting.terminal_view"}]},
-    {"keys": ["ctrl+A"], "command": "terminal_view_keypress", "args": {"key": "A", "alt": false, "ctrl": true, "shift": false, "meta": false}, "context": [{"key": "setting.terminal_view"}]},
-    {"keys": ["ctrl+B"], "command": "terminal_view_keypress", "args": {"key": "B", "alt": false, "ctrl": true, "shift": false, "meta": false}, "context": [{"key": "setting.terminal_view"}]},
-    {"keys": ["ctrl+C"], "command": "terminal_view_keypress", "args": {"key": "C", "alt": false, "ctrl": true, "shift": false, "meta": false}, "context": [{"key": "setting.terminal_view"}]},
-    {"keys": ["ctrl+D"], "command": "terminal_view_keypress", "args": {"key": "D", "alt": false, "ctrl": true, "shift": false, "meta": false}, "context": [{"key": "setting.terminal_view"}]},
-    {"keys": ["ctrl+E"], "command": "terminal_view_keypress", "args": {"key": "E", "alt": false, "ctrl": true, "shift": false, "meta": false}, "context": [{"key": "setting.terminal_view"}]},
-    {"keys": ["ctrl+F"], "command": "terminal_view_keypress", "args": {"key": "F", "alt": false, "ctrl": true, "shift": false, "meta": false}, "context": [{"key": "setting.terminal_view"}]},
-    {"keys": ["ctrl+G"], "command": "terminal_view_keypress", "args": {"key": "G", "alt": false, "ctrl": true, "shift": false, "meta": false}, "context": [{"key": "setting.terminal_view"}]},
-    {"keys": ["ctrl+H"], "command": "terminal_view_keypress", "args": {"key": "H", "alt": false, "ctrl": true, "shift": false, "meta": false}, "context": [{"key": "setting.terminal_view"}]},
-    {"keys": ["ctrl+I"], "command": "terminal_view_keypress", "args": {"key": "I", "alt": false, "ctrl": true, "shift": false, "meta": false}, "context": [{"key": "setting.terminal_view"}]},
-    {"keys": ["ctrl+J"], "command": "terminal_view_keypress", "args": {"key": "J", "alt": false, "ctrl": true, "shift": false, "meta": false}, "context": [{"key": "setting.terminal_view"}]},
-    {"keys": ["ctrl+K"], "command": "terminal_view_keypress", "args": {"key": "K", "alt": false, "ctrl": true, "shift": false, "meta": false}, "context": [{"key": "setting.terminal_view"}]},
-    {"keys": ["ctrl+L"], "command": "terminal_view_keypress", "args": {"key": "L", "alt": false, "ctrl": true, "shift": false, "meta": false}, "context": [{"key": "setting.terminal_view"}]},
-    {"keys": ["ctrl+M"], "command": "terminal_view_keypress", "args": {"key": "M", "alt": false, "ctrl": true, "shift": false, "meta": false}, "context": [{"key": "setting.terminal_view"}]},
-    {"keys": ["ctrl+N"], "command": "terminal_view_keypress", "args": {"key": "N", "alt": false, "ctrl": true, "shift": false, "meta": false}, "context": [{"key": "setting.terminal_view"}]},
-    {"keys": ["ctrl+O"], "command": "terminal_view_keypress", "args": {"key": "O", "alt": false, "ctrl": true, "shift": false, "meta": false}, "context": [{"key": "setting.terminal_view"}]},
-    {"keys": ["ctrl+P"], "command": "terminal_view_keypress", "args": {"key": "P", "alt": false, "ctrl": true, "shift": false, "meta": false}, "context": [{"key": "setting.terminal_view"}]},
-    {"keys": ["ctrl+Q"], "command": "terminal_view_keypress", "args": {"key": "Q", "alt": false, "ctrl": true, "shift": false, "meta": false}, "context": [{"key": "setting.terminal_view"}]},
-    {"keys": ["ctrl+R"], "command": "terminal_view_keypress", "args": {"key": "R", "alt": false, "ctrl": true, "shift": false, "meta": false}, "context": [{"key": "setting.terminal_view"}]},
-    {"keys": ["ctrl+S"], "command": "terminal_view_keypress", "args": {"key": "S", "alt": false, "ctrl": true, "shift": false, "meta": false}, "context": [{"key": "setting.terminal_view"}]},
-    {"keys": ["ctrl+T"], "command": "terminal_view_keypress", "args": {"key": "T", "alt": false, "ctrl": true, "shift": false, "meta": false}, "context": [{"key": "setting.terminal_view"}]},
-    {"keys": ["ctrl+U"], "command": "terminal_view_keypress", "args": {"key": "U", "alt": false, "ctrl": true, "shift": false, "meta": false}, "context": [{"key": "setting.terminal_view"}]},
-    {"keys": ["ctrl+V"], "command": "terminal_view_keypress", "args": {"key": "V", "alt": false, "ctrl": true, "shift": false, "meta": false}, "context": [{"key": "setting.terminal_view"}]},
-    {"keys": ["ctrl+X"], "command": "terminal_view_keypress", "args": {"key": "X", "alt": false, "ctrl": true, "shift": false, "meta": false}, "context": [{"key": "setting.terminal_view"}]},
-    {"keys": ["ctrl+Y"], "command": "terminal_view_keypress", "args": {"key": "Y", "alt": false, "ctrl": true, "shift": false, "meta": false}, "context": [{"key": "setting.terminal_view"}]},
-    {"keys": ["ctrl+Z"], "command": "terminal_view_keypress", "args": {"key": "Z", "alt": false, "ctrl": true, "shift": false, "meta": false}, "context": [{"key": "setting.terminal_view"}]},
 
     // All single characters, numbers and signs
     {"keys": ["A"], "command": "terminal_view_keypress", "args": {"key": "A", "alt": false, "ctrl": false, "shift": false, "meta": false}, "context": [{"key": "setting.terminal_view"}]},
@@ -167,7 +145,7 @@
     {"keys": ["~"], "command": "terminal_view_keypress", "args": {"key": "~", "alt": false, "ctrl": false, "shift": false, "meta": false}, "context": [{"key": "setting.terminal_view"}]},
 
     // Various keys that maybe isn't necessary to have per default in a terminal. If you need any
-    // simply copy the lines to your custom keymap file.
+    // simply copy the lines to your user keymap file.
 
     // {"keys": ["ctrl+0"], "command": "terminal_view_keypress", "args": {"key": "0", "alt": false, "ctrl": true, "shift": false, "meta": false}, "context": [{"key": "setting.terminal_view"}]},
     // {"keys": ["ctrl+1"], "command": "terminal_view_keypress", "args": {"key": "1", "alt": false, "ctrl": true, "shift": false, "meta": false}, "context": [{"key": "setting.terminal_view"}]},
