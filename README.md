@@ -37,7 +37,7 @@ The terminal view should be ready to use as you would with any other terminal. T
 The plugin should be working fine for many tasks but keep in mind that it has yet to be tested thoroughly and still lacks some functionality, this includes
 
 * Colors
-* Keybindings/handling for meta, alt and maybe some other keys
+* Keybindings/handling for meta and maybe some other keys
 * Various customization
 * Copy/paste
 * Scrolling

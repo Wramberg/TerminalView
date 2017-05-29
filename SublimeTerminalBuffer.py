@@ -105,9 +105,9 @@ class TerminalViewKeypress(sublime_plugin.TextCommand):
             sublime.error_message("Terminal View: Got keypress with non-string key")
             return
 
-        if alt:
-            sublime.error_message("Terminal View: Alt key is not supported yet")
-            return
+        # if alt:
+            # sublime.error_message("Terminal View: Alt key is not supported yet")
+            # return
 
         if meta:
             sublime.error_message("Terminal View: Meta key is not supported yet")

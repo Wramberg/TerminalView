@@ -52,6 +52,10 @@ class LinuxPty():
             self._send_control_key_combination(key)
             return
 
+        if alt:
+            self._send_alt_key_combination(key)
+            return
+
         key = convert_key_to_ansi(key)
         self._send_string(key)
 
@@ -72,6 +76,13 @@ class LinuxPty():
             self._send_string(chr(d[char]))
 
         return None
+
+    def _send_alt_key_combination(self, key):
+        key = key.lower()
+        if key in _LINUX_KEY_MAP:
+            key = _LINUX_KEY_MAP[key]
+
+        return self._send_string("\x1b" + key)
 
     def _send_string(self, string):
         if self.is_running():
