@@ -18,7 +18,7 @@ git clone https://github.com/Wramberg/TerminalView.git $HOME/.config/sublime-tex
 to install TerminalView.
 
 ## Usage
-By default there is no keybinding for opening a terminal view. Simply bring up your command pallete search for "Terminal View". By default this opens a terminal using 'bash -l' as shell. Alternatively you can bind a key in your keymap to the "terminal_view_open" command:
+Simply bring up your command pallete and search for "Terminal View". This opens a terminal using 'bash -l' as shell. By default there is no keybinding for opening a terminal view but you can bind a key in your keymap to the "terminal_view_open" command:
 ```
 { "keys": ["ctrl+alt+t"], "command": "terminal_view_open" },
 ```
