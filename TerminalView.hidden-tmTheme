@@ -50,6 +50,42 @@
           </dict>
       </dict>
 
+      <dict>
+         <key>scope</key>
+         <string>terminalview.black_white</string>
+         <key>settings</key>
+         <dict>
+            <key>background</key>
+            <string>#000001</string>
+            <key>foreground</key>
+            <string>#ffffff</string>
+         </dict>
+      </dict>
+
+      <dict>
+         <key>scope</key>
+         <string>terminalview.black_green</string>
+         <key>settings</key>
+         <dict>
+            <key>background</key>
+            <string>#000001</string>
+            <key>foreground</key>
+            <string>#00ff00</string>
+         </dict>
+      </dict>
+
+      <dict>
+         <key>scope</key>
+         <string>terminalview.black_red</string>
+         <key>settings</key>
+         <dict>
+            <key>background</key>
+            <string>#000001</string>
+            <key>foreground</key>
+            <string>#ff0000</string>
+         </dict>
+      </dict>
+
    </array>
    <key>uuid</key>
    <string>02313454-df49-4e6c-a03f-26378a7a2131</string>

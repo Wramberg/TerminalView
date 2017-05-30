@@ -44,7 +44,12 @@ class SublimeTerminalBuffer():
 
     def update_view(self):
         if len(self._screen.dirty) > 0:
-            update = {"lines": list(self._screen.dirty), "display": self._screen.display}
+            color_map = convert_pyte_buffer_to_colormap_for_lines(self._screen.buffer, self._screen.dirty)
+            update = {
+                "lines": list(self._screen.dirty),
+                "display": self._screen.display,
+                "color_map": color_map
+            }
             self._view.run_command("terminal_view_update_lines", update)
 
         self._update_cursor()
@@ -138,19 +143,35 @@ class TerminalViewClear(sublime_plugin.TextCommand):
 
 
 class TerminalViewUpdateLines(sublime_plugin.TextCommand):
-    def run(self, edit, lines, display):
+    def run(self, edit, lines, display, color_map):
         self.view.set_read_only(False)
         for line_no in sorted(lines):
+
+            # We may get line numbers outside the current display if it was
+            # resized to be smaller
             try:
                 content = display[line_no]
             except:
                 return
+
             p = self.view.text_point(line_no, 0)
             line_region = self.view.line(p)
             if line_region.empty():
                 self.view.replace(edit, line_region, content + "\n")
             else:
                 self.view.replace(edit, line_region, content)
+
+            # Color
+            if str(line_no) in color_map:
+                for idx, colors in color_map[str(line_no)].items():
+                    # print(idx)
+                    # print(colors)
+                    # print("")
+                    p = self.view.text_point(line_no, int(idx))
+                    reg = sublime.Region(p, p+1)
+                    key = "%i,%s" % (line_no, idx)
+                    self.view.add_regions(key, [reg], "terminalview.black_green", flags=sublime.DRAW_NO_OUTLINE | sublime.PERSISTENT)
+
         self.view.set_read_only(True)
 
 
@@ -159,6 +180,26 @@ class TerminalViewOnCloseCleanup(sublime_plugin.EventListener):
         if view.id() in global_keypress_callbacks:
             utils.log_to_console("Cleaning up after view %i closed" % view.id())
             del global_keypress_callbacks[view.id()]
+
+
+def convert_pyte_buffer_to_colormap_for_lines(buffer, lines):
+    color_map = {}
+    for line_index in lines:
+        # There may be lines outside the buffer after terminal was resized.
+        # These are considered blank.
+        if line_index > len(buffer) - 1:
+            break
+
+        # Note that we have to use strings as key otherwise ST3 cannot send the
+        # data between commands
+        line = buffer[line_index]
+        for char_index, char in enumerate(line):
+            if char.fg != "default" or char.bg != "default":
+                if str(line_index) not in color_map:
+                    color_map[str(line_index)] = {}
+                color_map[str(line_index)][str(char_index)] = (char.bg, char.fg)
+
+    return color_map
 
 
 def set_color_scheme(view):
