@@ -95,9 +95,7 @@ class TerminalViewCore(sublime_plugin.TextCommand):
         # 30 frames per second should be responsive enough
         IDEAL_DELTA = 1.0 / 30.0
         current = time.time()
-        while True:
-            if self._stopped():
-                break
+        while not self._stopped():
             self._poll_shell_output()
             self._refresh_terminal_view()
             self._check_for_screen_resize()
