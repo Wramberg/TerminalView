@@ -18,7 +18,7 @@ class LinuxPty():
         (self._pty, self._pts) = os.openpty()
         self._process = subprocess.Popen(self._cmd, stdin=self._pts,
                                          stdout=self._pts, stderr=self._pts, shell=False,
-                                         env=self._env, close_fds=True, preexec_fn=os.setsid,
+                                         env=self._env, close_fds=True, start_new_session=True,
                                          cwd=cwd)
 
     def stop(self):
