@@ -1,4 +1,6 @@
 import os
+import threading
+import time
 
 import sublime
 import sublime_plugin
@@ -20,7 +22,7 @@ class TerminalViewOpen(sublime_plugin.WindowCommand):
         Open a new terminal view
 
         Args:
-            cmd (str, optional): Shell to execute. Detauls to 'bash -l'.
+            cmd (str, optional): Shell to execute. Defaults to 'bash -l.
             title (str, optional): Terminal view title. Defaults to 'Terminal'.
             cwd (str, optional): The working dir to start out with. Defaults to
                                  either the project path, the currently open
@@ -68,8 +70,9 @@ class TerminalViewCore(sublime_plugin.TextCommand):
         # scrollbars etc. into account and avoid multiple resizes)
         self._terminal_buffer.update_view()
 
-        # Allow for ST to service the view before we boostrap everything
-        sublime.set_timeout(self._bootstrap_terminal_view, 10)
+        self._shell = LinuxPty.LinuxPty(self._cmd.split(), self._cwd)
+        self._shell_is_running = True
+        threading.Thread(target=self._update).start()
 
     def terminal_view_keypress_callback(self, key, ctrl=False, alt=False, shift=False, meta=False):
         """
@@ -84,51 +87,43 @@ class TerminalViewCore(sublime_plugin.TextCommand):
         """
         self._shell.send_keypress(key, ctrl, alt, shift, meta)
 
-    def _bootstrap_terminal_view(self):
+    def _update(self):
         """
-        Start underlying shell and call a series of member functions that all
-        keep calling themselves at regular intervals until we shut down.
+        This is the main update function. It attempts to run at a certain number
+        of frames per second, and keeps input and output synchronized.
         """
-        # Start the shell
-        self._shell = LinuxPty.LinuxPty(self._cmd.split(), self._cwd)
-        self._shell_is_running = True
-
-        # Do resize check regularly
-        self._check_for_screen_resize()
-
-        # Poll shell output regularly
-        self._poll_shell_output()
-
-        # Refresh terminal buffer at regular intervals
-        self._refresh_terminal_view()
-
-        # Check whether shell exitted or terminal view was closed regularly
-        self._check_if_terminal_closed_or_shell_exited()
+        # 30 frames per second should be responsive enough
+        IDEAL_DELTA = 1.0 / 30.0
+        current = time.time()
+        while True:
+            if self._stopped():
+                break
+            self._poll_shell_output()
+            self._refresh_terminal_view()
+            self._check_for_screen_resize()
+            self._check_if_terminal_closed_or_shell_exited()
+            previous = current
+            current = time.time()
+            actual_delta = current - previous
+            time_left = IDEAL_DELTA - actual_delta
+            if time_left > 0.0:
+                time.sleep(time_left)
 
     def _refresh_terminal_view(self):
         """
         Update the terminal view so its showing the latest data.
         """
-        if self._stopped():
-            return
-
         self._terminal_buffer.update_view()
-        sublime.set_timeout(self._refresh_terminal_view, 20)
 
     def _poll_shell_output(self):
         """
         Poll the output of the shell
         """
-        if self._stopped():
-            return
-
         max_read_size = 4096
         data = self._shell.receive_output(max_read_size)
         if data is not None:
             utils.log_to_console("Got %u bytes of data from shell" % (len(data), ))
             self._terminal_buffer.insert_data(data)
-
-        sublime.set_timeout(self._poll_shell_output, 5)
 
     def _check_if_terminal_closed_or_shell_exited(self):
         """
@@ -142,15 +137,11 @@ class TerminalViewCore(sublime_plugin.TextCommand):
             self._stop()
             return
 
-        sublime.set_timeout(self._check_if_terminal_closed_or_shell_exited, 100)
-
     def _check_for_screen_resize(self):
         """
         Check if the terminal view was resized. If so update the screen size of
         the terminal and notify the shell.
         """
-        if self._stopped():
-            return
 
         (rows, cols) = self._terminal_buffer.view_size()
         row_diff = abs(self._terminal_rows - rows)
@@ -165,8 +156,6 @@ class TerminalViewCore(sublime_plugin.TextCommand):
             self._terminal_columns = cols
             self._shell.update_screen_size(self._terminal_rows, self._terminal_columns)
             self._terminal_buffer.update_terminal_size(self._terminal_rows, self._terminal_columns)
-
-        sublime.set_timeout(self._check_for_screen_resize, 250)
 
     def _stop(self):
         """
