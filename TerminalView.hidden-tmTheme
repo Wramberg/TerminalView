@@ -17,17 +17,17 @@
             <key>caret</key>
             <string>#ffffff</string>
 
-            <key>lineHighlight</key>
-            <string>#ffffff00</string>
+        <!--     <key>lineHighlight</key>
+            <string>#ffde935f</string>
             <key>invisibles</key>
             <string>#ffffff</string>
 
             <key>selection</key>
             <string>#ffffff80</string>
             <key>selectionBorder</key>
-            <string>#ffffff00</string>
+            <string>#ffde935f</string>
             <key>inactiveSelection</key>
-            <string>#ffffff40</string>
+            <string>#ffffff40</string> -->
 
             <key>shadow</key>
             <string>#00000080</string>
@@ -50,6 +50,282 @@
           </dict>
       </dict>
 
+      <!-- Below are all the dynamic colors which are set at runtime based on
+           the content of the terminal. The chosen colors are:
+            bgcolors = {
+               "black": "#000001",
+               "white": "#c5c8c6",
+               "red": "#a54242",
+               "green": "#8c9440",
+               "blue": "#5f819d",
+               "brown": "#de935f",
+               "magenta": "#85678f",
+               "cyan": "#5e8d87"
+            }
+
+            fgcolors = {
+               "black": "#282a2e",
+               "white": "#ffffff",
+               "red": "#cc6666",
+               "green": "#b5bd68",
+               "blue": "#81a2be",
+               "brown": "#f0c674",
+               "magenta": "#b294bb",
+               "cyan": "#8abeb7"
+            } -->
+
+      <dict>
+         <key>scope</key>
+         <string>terminalview.blue_blue</string>
+         <key>settings</key>
+         <dict>
+            <key>background</key>
+            <string>#5f819d</string>
+            <key>foreground</key>
+            <string>#81a2be</string>
+         </dict>
+      </dict>
+
+      <dict>
+         <key>scope</key>
+         <string>terminalview.blue_brown</string>
+         <key>settings</key>
+         <dict>
+            <key>background</key>
+            <string>#5f819d</string>
+            <key>foreground</key>
+            <string>#f0c674</string>
+         </dict>
+      </dict>
+
+      <dict>
+         <key>scope</key>
+         <string>terminalview.blue_black</string>
+         <key>settings</key>
+         <dict>
+            <key>background</key>
+            <string>#5f819d</string>
+            <key>foreground</key>
+            <string>#282a2e</string>
+         </dict>
+      </dict>
+
+      <dict>
+         <key>scope</key>
+         <string>terminalview.blue_cyan</string>
+         <key>settings</key>
+         <dict>
+            <key>background</key>
+            <string>#5f819d</string>
+            <key>foreground</key>
+            <string>#8abeb7</string>
+         </dict>
+      </dict>
+
+      <dict>
+         <key>scope</key>
+         <string>terminalview.blue_green</string>
+         <key>settings</key>
+         <dict>
+            <key>background</key>
+            <string>#5f819d</string>
+            <key>foreground</key>
+            <string>#b5bd68</string>
+         </dict>
+      </dict>
+
+      <dict>
+         <key>scope</key>
+         <string>terminalview.blue_white</string>
+         <key>settings</key>
+         <dict>
+            <key>background</key>
+            <string>#5f819d</string>
+            <key>foreground</key>
+            <string>#ffffff</string>
+         </dict>
+      </dict>
+
+      <dict>
+         <key>scope</key>
+         <string>terminalview.blue_magenta</string>
+         <key>settings</key>
+         <dict>
+            <key>background</key>
+            <string>#5f819d</string>
+            <key>foreground</key>
+            <string>#b294bb</string>
+         </dict>
+      </dict>
+
+      <dict>
+         <key>scope</key>
+         <string>terminalview.blue_red</string>
+         <key>settings</key>
+         <dict>
+            <key>background</key>
+            <string>#5f819d</string>
+            <key>foreground</key>
+            <string>#cc6666</string>
+         </dict>
+      </dict>
+
+      <dict>
+         <key>scope</key>
+         <string>terminalview.brown_blue</string>
+         <key>settings</key>
+         <dict>
+            <key>background</key>
+            <string>#de935f</string>
+            <key>foreground</key>
+            <string>#81a2be</string>
+         </dict>
+      </dict>
+
+      <dict>
+         <key>scope</key>
+         <string>terminalview.brown_brown</string>
+         <key>settings</key>
+         <dict>
+            <key>background</key>
+            <string>#de935f</string>
+            <key>foreground</key>
+            <string>#f0c674</string>
+         </dict>
+      </dict>
+
+      <dict>
+         <key>scope</key>
+         <string>terminalview.brown_black</string>
+         <key>settings</key>
+         <dict>
+            <key>background</key>
+            <string>#de935f</string>
+            <key>foreground</key>
+            <string>#282a2e</string>
+         </dict>
+      </dict>
+
+      <dict>
+         <key>scope</key>
+         <string>terminalview.brown_cyan</string>
+         <key>settings</key>
+         <dict>
+            <key>background</key>
+            <string>#de935f</string>
+            <key>foreground</key>
+            <string>#8abeb7</string>
+         </dict>
+      </dict>
+
+      <dict>
+         <key>scope</key>
+         <string>terminalview.brown_green</string>
+         <key>settings</key>
+         <dict>
+            <key>background</key>
+            <string>#de935f</string>
+            <key>foreground</key>
+            <string>#b5bd68</string>
+         </dict>
+      </dict>
+
+      <dict>
+         <key>scope</key>
+         <string>terminalview.brown_white</string>
+         <key>settings</key>
+         <dict>
+            <key>background</key>
+            <string>#de935f</string>
+            <key>foreground</key>
+            <string>#ffffff</string>
+         </dict>
+      </dict>
+
+      <dict>
+         <key>scope</key>
+         <string>terminalview.brown_magenta</string>
+         <key>settings</key>
+         <dict>
+            <key>background</key>
+            <string>#de935f</string>
+            <key>foreground</key>
+            <string>#b294bb</string>
+         </dict>
+      </dict>
+
+      <dict>
+         <key>scope</key>
+         <string>terminalview.brown_red</string>
+         <key>settings</key>
+         <dict>
+            <key>background</key>
+            <string>#de935f</string>
+            <key>foreground</key>
+            <string>#cc6666</string>
+         </dict>
+      </dict>
+
+      <dict>
+         <key>scope</key>
+         <string>terminalview.black_blue</string>
+         <key>settings</key>
+         <dict>
+            <key>background</key>
+            <string>#000001</string>
+            <key>foreground</key>
+            <string>#81a2be</string>
+         </dict>
+      </dict>
+
+      <dict>
+         <key>scope</key>
+         <string>terminalview.black_brown</string>
+         <key>settings</key>
+         <dict>
+            <key>background</key>
+            <string>#000001</string>
+            <key>foreground</key>
+            <string>#f0c674</string>
+         </dict>
+      </dict>
+
+      <dict>
+         <key>scope</key>
+         <string>terminalview.black_black</string>
+         <key>settings</key>
+         <dict>
+            <key>background</key>
+            <string>#000001</string>
+            <key>foreground</key>
+            <string>#282a2e</string>
+         </dict>
+      </dict>
+
+      <dict>
+         <key>scope</key>
+         <string>terminalview.black_cyan</string>
+         <key>settings</key>
+         <dict>
+            <key>background</key>
+            <string>#000001</string>
+            <key>foreground</key>
+            <string>#8abeb7</string>
+         </dict>
+      </dict>
+
+      <dict>
+         <key>scope</key>
+         <string>terminalview.black_green</string>
+         <key>settings</key>
+         <dict>
+            <key>background</key>
+            <string>#000001</string>
+            <key>foreground</key>
+            <string>#b5bd68</string>
+         </dict>
+      </dict>
+
       <dict>
          <key>scope</key>
          <string>terminalview.black_white</string>
@@ -64,13 +340,13 @@
 
       <dict>
          <key>scope</key>
-         <string>terminalview.black_green</string>
+         <string>terminalview.black_magenta</string>
          <key>settings</key>
          <dict>
             <key>background</key>
             <string>#000001</string>
             <key>foreground</key>
-            <string>#00ff00</string>
+            <string>#b294bb</string>
          </dict>
       </dict>
 
@@ -82,7 +358,487 @@
             <key>background</key>
             <string>#000001</string>
             <key>foreground</key>
-            <string>#ff0000</string>
+            <string>#cc6666</string>
+         </dict>
+      </dict>
+
+      <dict>
+         <key>scope</key>
+         <string>terminalview.cyan_blue</string>
+         <key>settings</key>
+         <dict>
+            <key>background</key>
+            <string>#5e8d87</string>
+            <key>foreground</key>
+            <string>#81a2be</string>
+         </dict>
+      </dict>
+
+      <dict>
+         <key>scope</key>
+         <string>terminalview.cyan_brown</string>
+         <key>settings</key>
+         <dict>
+            <key>background</key>
+            <string>#5e8d87</string>
+            <key>foreground</key>
+            <string>#f0c674</string>
+         </dict>
+      </dict>
+
+      <dict>
+         <key>scope</key>
+         <string>terminalview.cyan_black</string>
+         <key>settings</key>
+         <dict>
+            <key>background</key>
+            <string>#5e8d87</string>
+            <key>foreground</key>
+            <string>#282a2e</string>
+         </dict>
+      </dict>
+
+      <dict>
+         <key>scope</key>
+         <string>terminalview.cyan_cyan</string>
+         <key>settings</key>
+         <dict>
+            <key>background</key>
+            <string>#5e8d87</string>
+            <key>foreground</key>
+            <string>#8abeb7</string>
+         </dict>
+      </dict>
+
+      <dict>
+         <key>scope</key>
+         <string>terminalview.cyan_green</string>
+         <key>settings</key>
+         <dict>
+            <key>background</key>
+            <string>#5e8d87</string>
+            <key>foreground</key>
+            <string>#b5bd68</string>
+         </dict>
+      </dict>
+
+      <dict>
+         <key>scope</key>
+         <string>terminalview.cyan_white</string>
+         <key>settings</key>
+         <dict>
+            <key>background</key>
+            <string>#5e8d87</string>
+            <key>foreground</key>
+            <string>#ffffff</string>
+         </dict>
+      </dict>
+
+      <dict>
+         <key>scope</key>
+         <string>terminalview.cyan_magenta</string>
+         <key>settings</key>
+         <dict>
+            <key>background</key>
+            <string>#5e8d87</string>
+            <key>foreground</key>
+            <string>#b294bb</string>
+         </dict>
+      </dict>
+
+      <dict>
+         <key>scope</key>
+         <string>terminalview.cyan_red</string>
+         <key>settings</key>
+         <dict>
+            <key>background</key>
+            <string>#5e8d87</string>
+            <key>foreground</key>
+            <string>#cc6666</string>
+         </dict>
+      </dict>
+
+      <dict>
+         <key>scope</key>
+         <string>terminalview.green_blue</string>
+         <key>settings</key>
+         <dict>
+            <key>background</key>
+            <string>#8c9440</string>
+            <key>foreground</key>
+            <string>#81a2be</string>
+         </dict>
+      </dict>
+
+      <dict>
+         <key>scope</key>
+         <string>terminalview.green_brown</string>
+         <key>settings</key>
+         <dict>
+            <key>background</key>
+            <string>#8c9440</string>
+            <key>foreground</key>
+            <string>#f0c674</string>
+         </dict>
+      </dict>
+
+      <dict>
+         <key>scope</key>
+         <string>terminalview.green_black</string>
+         <key>settings</key>
+         <dict>
+            <key>background</key>
+            <string>#8c9440</string>
+            <key>foreground</key>
+            <string>#282a2e</string>
+         </dict>
+      </dict>
+
+      <dict>
+         <key>scope</key>
+         <string>terminalview.green_cyan</string>
+         <key>settings</key>
+         <dict>
+            <key>background</key>
+            <string>#8c9440</string>
+            <key>foreground</key>
+            <string>#8abeb7</string>
+         </dict>
+      </dict>
+
+      <dict>
+         <key>scope</key>
+         <string>terminalview.green_green</string>
+         <key>settings</key>
+         <dict>
+            <key>background</key>
+            <string>#8c9440</string>
+            <key>foreground</key>
+            <string>#b5bd68</string>
+         </dict>
+      </dict>
+
+      <dict>
+         <key>scope</key>
+         <string>terminalview.green_white</string>
+         <key>settings</key>
+         <dict>
+            <key>background</key>
+            <string>#8c9440</string>
+            <key>foreground</key>
+            <string>#ffffff</string>
+         </dict>
+      </dict>
+
+      <dict>
+         <key>scope</key>
+         <string>terminalview.green_magenta</string>
+         <key>settings</key>
+         <dict>
+            <key>background</key>
+            <string>#8c9440</string>
+            <key>foreground</key>
+            <string>#b294bb</string>
+         </dict>
+      </dict>
+
+      <dict>
+         <key>scope</key>
+         <string>terminalview.green_red</string>
+         <key>settings</key>
+         <dict>
+            <key>background</key>
+            <string>#8c9440</string>
+            <key>foreground</key>
+            <string>#cc6666</string>
+         </dict>
+      </dict>
+
+      <dict>
+         <key>scope</key>
+         <string>terminalview.white_blue</string>
+         <key>settings</key>
+         <dict>
+            <key>background</key>
+            <string>#c5c8c6</string>
+            <key>foreground</key>
+            <string>#81a2be</string>
+         </dict>
+      </dict>
+
+      <dict>
+         <key>scope</key>
+         <string>terminalview.white_brown</string>
+         <key>settings</key>
+         <dict>
+            <key>background</key>
+            <string>#c5c8c6</string>
+            <key>foreground</key>
+            <string>#f0c674</string>
+         </dict>
+      </dict>
+
+      <dict>
+         <key>scope</key>
+         <string>terminalview.white_black</string>
+         <key>settings</key>
+         <dict>
+            <key>background</key>
+            <string>#c5c8c6</string>
+            <key>foreground</key>
+            <string>#282a2e</string>
+         </dict>
+      </dict>
+
+      <dict>
+         <key>scope</key>
+         <string>terminalview.white_cyan</string>
+         <key>settings</key>
+         <dict>
+            <key>background</key>
+            <string>#c5c8c6</string>
+            <key>foreground</key>
+            <string>#8abeb7</string>
+         </dict>
+      </dict>
+
+      <dict>
+         <key>scope</key>
+         <string>terminalview.white_green</string>
+         <key>settings</key>
+         <dict>
+            <key>background</key>
+            <string>#c5c8c6</string>
+            <key>foreground</key>
+            <string>#b5bd68</string>
+         </dict>
+      </dict>
+
+      <dict>
+         <key>scope</key>
+         <string>terminalview.white_white</string>
+         <key>settings</key>
+         <dict>
+            <key>background</key>
+            <string>#c5c8c6</string>
+            <key>foreground</key>
+            <string>#ffffff</string>
+         </dict>
+      </dict>
+
+      <dict>
+         <key>scope</key>
+         <string>terminalview.white_magenta</string>
+         <key>settings</key>
+         <dict>
+            <key>background</key>
+            <string>#c5c8c6</string>
+            <key>foreground</key>
+            <string>#b294bb</string>
+         </dict>
+      </dict>
+
+      <dict>
+         <key>scope</key>
+         <string>terminalview.white_red</string>
+         <key>settings</key>
+         <dict>
+            <key>background</key>
+            <string>#c5c8c6</string>
+            <key>foreground</key>
+            <string>#cc6666</string>
+         </dict>
+      </dict>
+
+      <dict>
+         <key>scope</key>
+         <string>terminalview.magenta_blue</string>
+         <key>settings</key>
+         <dict>
+            <key>background</key>
+            <string>#85678f</string>
+            <key>foreground</key>
+            <string>#81a2be</string>
+         </dict>
+      </dict>
+
+      <dict>
+         <key>scope</key>
+         <string>terminalview.magenta_brown</string>
+         <key>settings</key>
+         <dict>
+            <key>background</key>
+            <string>#85678f</string>
+            <key>foreground</key>
+            <string>#f0c674</string>
+         </dict>
+      </dict>
+
+      <dict>
+         <key>scope</key>
+         <string>terminalview.magenta_black</string>
+         <key>settings</key>
+         <dict>
+            <key>background</key>
+            <string>#85678f</string>
+            <key>foreground</key>
+            <string>#282a2e</string>
+         </dict>
+      </dict>
+
+      <dict>
+         <key>scope</key>
+         <string>terminalview.magenta_cyan</string>
+         <key>settings</key>
+         <dict>
+            <key>background</key>
+            <string>#85678f</string>
+            <key>foreground</key>
+            <string>#8abeb7</string>
+         </dict>
+      </dict>
+
+      <dict>
+         <key>scope</key>
+         <string>terminalview.magenta_green</string>
+         <key>settings</key>
+         <dict>
+            <key>background</key>
+            <string>#85678f</string>
+            <key>foreground</key>
+            <string>#b5bd68</string>
+         </dict>
+      </dict>
+
+      <dict>
+         <key>scope</key>
+         <string>terminalview.magenta_white</string>
+         <key>settings</key>
+         <dict>
+            <key>background</key>
+            <string>#85678f</string>
+            <key>foreground</key>
+            <string>#ffffff</string>
+         </dict>
+      </dict>
+
+      <dict>
+         <key>scope</key>
+         <string>terminalview.magenta_magenta</string>
+         <key>settings</key>
+         <dict>
+            <key>background</key>
+            <string>#85678f</string>
+            <key>foreground</key>
+            <string>#b294bb</string>
+         </dict>
+      </dict>
+
+      <dict>
+         <key>scope</key>
+         <string>terminalview.magenta_red</string>
+         <key>settings</key>
+         <dict>
+            <key>background</key>
+            <string>#85678f</string>
+            <key>foreground</key>
+            <string>#cc6666</string>
+         </dict>
+      </dict>
+
+      <dict>
+         <key>scope</key>
+         <string>terminalview.red_blue</string>
+         <key>settings</key>
+         <dict>
+            <key>background</key>
+            <string>#a54242</string>
+            <key>foreground</key>
+            <string>#81a2be</string>
+         </dict>
+      </dict>
+
+      <dict>
+         <key>scope</key>
+         <string>terminalview.red_brown</string>
+         <key>settings</key>
+         <dict>
+            <key>background</key>
+            <string>#a54242</string>
+            <key>foreground</key>
+            <string>#f0c674</string>
+         </dict>
+      </dict>
+
+      <dict>
+         <key>scope</key>
+         <string>terminalview.red_black</string>
+         <key>settings</key>
+         <dict>
+            <key>background</key>
+            <string>#a54242</string>
+            <key>foreground</key>
+            <string>#282a2e</string>
+         </dict>
+      </dict>
+
+      <dict>
+         <key>scope</key>
+         <string>terminalview.red_cyan</string>
+         <key>settings</key>
+         <dict>
+            <key>background</key>
+            <string>#a54242</string>
+            <key>foreground</key>
+            <string>#8abeb7</string>
+         </dict>
+      </dict>
+
+      <dict>
+         <key>scope</key>
+         <string>terminalview.red_green</string>
+         <key>settings</key>
+         <dict>
+            <key>background</key>
+            <string>#a54242</string>
+            <key>foreground</key>
+            <string>#b5bd68</string>
+         </dict>
+      </dict>
+
+      <dict>
+         <key>scope</key>
+         <string>terminalview.red_white</string>
+         <key>settings</key>
+         <dict>
+            <key>background</key>
+            <string>#a54242</string>
+            <key>foreground</key>
+            <string>#ffffff</string>
+         </dict>
+      </dict>
+
+      <dict>
+         <key>scope</key>
+         <string>terminalview.red_magenta</string>
+         <key>settings</key>
+         <dict>
+            <key>background</key>
+            <string>#a54242</string>
+            <key>foreground</key>
+            <string>#b294bb</string>
+         </dict>
+      </dict>
+
+      <dict>
+         <key>scope</key>
+         <string>terminalview.red_red</string>
+         <key>settings</key>
+         <dict>
+            <key>background</key>
+            <string>#a54242</string>
+            <key>foreground</key>
+            <string>#cc6666</string>
          </dict>
       </dict>
 
