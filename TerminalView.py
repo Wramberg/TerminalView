@@ -59,20 +59,19 @@ class TerminalViewCore(sublime_plugin.TextCommand):
         self._cmd = cmd
         self._cwd = cwd
 
+        # Initialize the sublime view
         self._terminal_buffer = SublimeTerminalBuffer.SublimeTerminalBuffer(self.view, title)
         self._terminal_buffer.set_keypress_callback(self.terminal_view_keypress_callback)
         self._terminal_buffer_is_open = True
         self._terminal_rows = 0
         self._terminal_columns = 0
 
-        # Update view manually right away to fill out the Sublime view with
-        # blank spaces before we read its initial size (this way we take
-        # scrollbars etc. into account and avoid multiple resizes)
-        self._terminal_buffer.update_view()
-
+        # Start the underlying shell
         self._shell = LinuxPty.LinuxPty(self._cmd.split(), self._cwd)
         self._shell_is_running = True
-        threading.Thread(target=self._update).start()
+
+        # Start the main loop
+        threading.Thread(target=self._main_update_loop).start()
 
     def terminal_view_keypress_callback(self, key, ctrl=False, alt=False, shift=False, meta=False):
         """
@@ -87,7 +86,7 @@ class TerminalViewCore(sublime_plugin.TextCommand):
         """
         self._shell.send_keypress(key, ctrl, alt, shift, meta)
 
-    def _update(self):
+    def _main_update_loop(self):
         """
         This is the main update function. It attempts to run at a certain number
         of frames per second, and keeps input and output synchronized.
@@ -107,12 +106,6 @@ class TerminalViewCore(sublime_plugin.TextCommand):
             if time_left > 0.0:
                 time.sleep(time_left)
 
-    def _refresh_terminal_view(self):
-        """
-        Update the terminal view so its showing the latest data.
-        """
-        self._terminal_buffer.update_view()
-
     def _poll_shell_output(self):
         """
         Poll the output of the shell
@@ -123,17 +116,11 @@ class TerminalViewCore(sublime_plugin.TextCommand):
             utils.log_to_console("Got %u bytes of data from shell" % (len(data), ))
             self._terminal_buffer.insert_data(data)
 
-    def _check_if_terminal_closed_or_shell_exited(self):
+    def _refresh_terminal_view(self):
         """
-        Check if the terminal was closed or the shell exited. If so stop
-        everything.
+        Update the terminal view so its showing the latest data.
         """
-        self._terminal_buffer_is_open = self._terminal_buffer.is_open()
-        self._shell_is_running = self._shell.is_running()
-
-        if (not self._terminal_buffer_is_open) or (not self._shell_is_running):
-            self._stop()
-            return
+        self._terminal_buffer.update_view()
 
     def _check_for_screen_resize(self):
         """
@@ -154,6 +141,18 @@ class TerminalViewCore(sublime_plugin.TextCommand):
             self._terminal_columns = cols
             self._shell.update_screen_size(self._terminal_rows, self._terminal_columns)
             self._terminal_buffer.update_terminal_size(self._terminal_rows, self._terminal_columns)
+
+    def _check_if_terminal_closed_or_shell_exited(self):
+        """
+        Check if the terminal was closed or the shell exited. If so stop
+        everything.
+        """
+        self._terminal_buffer_is_open = self._terminal_buffer.is_open()
+        self._shell_is_running = self._shell.is_running()
+
+        if (not self._terminal_buffer_is_open) or (not self._shell_is_running):
+            self._stop()
+            return
 
     def _stop(self):
         """

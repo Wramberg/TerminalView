@@ -28,11 +28,11 @@ class LinuxPty():
         return
 
     def receive_output(self, max_read_size):
-        (r, w, x) = select.select([self._pty], [], [], 0)
-        if not r:
+        if not self.is_running():
             return None
 
-        if not self.is_running():
+        (r, w, x) = select.select([self._pty], [], [], 0)
+        if not r:
             return None
 
         return os.read(self._pty, max_read_size)
@@ -48,12 +48,12 @@ class LinuxPty():
         return self._process is not None and self._process.poll() is None
 
     def send_keypress(self, key, ctrl=False, alt=False, shift=False, super=False):
-        # If control was pressed together with single key send the combination
-        # to the shell
+        # If control was pressed together with single key
         if ctrl and len(key) is 1:
             self._send_control_key_combination(key)
             return
 
+        # If alt was pressed together with single key
         if alt:
             self._send_alt_key_combination(key)
             return
