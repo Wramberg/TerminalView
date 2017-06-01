@@ -1,4 +1,6 @@
 import time
+import copy
+from collections import deque
 
 import sublime
 import sublime_plugin
@@ -31,14 +33,12 @@ class SublimeTerminalBuffer():
         sublime_view.settings().set("terminal_view", True)
         sublime.active_window().focus_view(sublime_view)
 
-        # Initialize private settings for coloring
-        sublime_view.settings().set("terminal_view_color_regions", {})
+        # Save a dict on the view to store color regions in for each line
+        sublime_view.terminal_view_color_regions = {}
 
-        # Start out with a large terminal to ensure ST draws scrollbars etc. If
-        # we do not do this we will end up resizing terminal first time its
-        # rendered
+        # Use pyte as underlying terminal emulator
         self._bytestream = pyte.ByteStream()
-        self._screen = pyte.DiffScreen(800, 240)
+        self._screen = pyte.DiffScreen(80, 24)
         self._bytestream.attach(self._screen)
 
     def set_keypress_callback(self, callback):
@@ -49,13 +49,20 @@ class SublimeTerminalBuffer():
 
     def update_view(self):
         if len(self._screen.dirty) > 0:
+            start = time.time()
             color_map = convert_pyte_buffer_lines_to_colormap(self._screen.buffer, self._screen.dirty)
+            t = time.time() - start
+            print("time", t*1000.)
+
+            start = time.time()
             update = {
                 "lines": list(self._screen.dirty),
                 "display": self._screen.display,
                 "color_map": color_map
             }
             self._view.run_command("terminal_view_update_lines", update)
+            t = time.time() - start
+            print("time", t*1000.)
 
         self._update_cursor()
         self._screen.dirty.clear()
@@ -144,6 +151,11 @@ class TerminalViewUpdateLines(sublime_plugin.TextCommand):
         clear_time = 0
         update_time = 0
         color_time = 0
+
+        full_screen_width = self.view.full_line(0).size()
+        # print(full_screen_width) # TODO fix that this is zero first time !!!!!!!!!
+        # TODO try reordering clear, color and update to see which is fastest
+
         self.view.set_read_only(False)
         for line_no in sorted(lines):
             # We may get line numbers outside the current display if it was
@@ -151,69 +163,83 @@ class TerminalViewUpdateLines(sublime_plugin.TextCommand):
             if line_no > len(display) - 1:
                 break
 
+            # Update the line
+            start = time.time()
+            self._update_line_content(edit, line_no, display[line_no], full_screen_width)
+            t = time.time() - start
+            update_time = update_time + t
+
             # Clear any colors on the line
             start = time.time()
             self._remove_color_regions_on_line(line_no)
             t = time.time() - start
             clear_time = clear_time + t
 
-            # Update the line
-            start = time.time()
-            self._update_line_content(edit, line_no, display[line_no])
-            t = time.time() - start
-            update_time = update_time + t
-
             # Apply colors to the line if there are any on it
             if str(line_no) in color_map:
                 start = time.time()
-                self._update_line_colors(line_no, color_map[str(line_no)])
+                self._update_line_colors(line_no, color_map[str(line_no)], full_screen_width)
                 t = time.time() - start
                 color_time = color_time + t
 
         self.view.set_read_only(True)
         print("Done")
-        print(clear_time)
-        print(update_time)
-        print(color_time)
+        print(clear_time*1000.)
+        print(update_time*1000.)
+        print(color_time*1000.)
         print("---")
 
-    def _update_line_content(self, edit, line_no, content):
-        p = self.view.text_point(line_no, 0)
-        line_region = self.view.line(p)
-        if line_region.empty():
-            self.view.replace(edit, line_region, content + "\n")
-        else:
-            self.view.replace(edit, line_region, content)
+    def _update_line_content(self, edit, line_no, content, full_screen_width):
+        # Note this function has been highly optimized to work better with color
+        # regions. There are a lot of options in the ST3 API could make this
+        # function simpler but they are significantly slower! For example, calls
+        # to self.view.line() takes a lot longer than calculating the start and
+        # end of the line and construction the region manually.
 
-    def _update_line_colors(self, line_no, line_color_map):
+        # Get first point on the line and last (including newline feed)
+        line_start = line_no * full_screen_width
+        line_end = line_start + full_screen_width
+
+        # Make region spanning entire line
+        line_region = sublime.Region(line_start, line_end)
+
+        # Replace content on the line with new content
+        self.view.replace(edit, line_region, content + "\n")
+
+    def _remove_color_regions_on_line(self, line_no):
+        if str(line_no) in self.view.terminal_view_color_regions:
+            region_deque = self.view.terminal_view_color_regions[str(line_no)]
+            try:
+                while(1):
+                    region = region_deque.popleft()
+                    self.view.erase_regions(region)
+            except IndexError:
+                pass
+
+    def _update_line_colors(self, line_no, line_color_map, full_screen_width):
         for idx, field in line_color_map.items():
             length = field["field_length"]
             color_scope = "terminalview.%s_%s" % (field["color"][0], field["color"][1])
 
-            p = self.view.text_point(line_no, int(idx))
-            buffer_region = sublime.Region(p, p+length)
-            region_key = "%i,%s" % (line_no, idx)
+            # Get text point for where color should start
+            line_start = line_no * full_screen_width
+            color_start = line_start + int(idx)
+
+            # Make region that should be colored
+            buffer_region = sublime.Region(color_start, color_start+length)
+            region_key = "%i,%s,%f" % (line_no, idx, time.time())
+
+            # Add the region
             flags = sublime.DRAW_NO_OUTLINE | sublime.PERSISTENT
             self.view.add_regions(region_key, [buffer_region], color_scope, flags=flags)
             self._register_color_region(line_no, region_key)
 
     def _register_color_region(self, line_no, key):
-        settings = self.view.settings().get("terminal_view_color_regions", {})
-        if str(line_no) in settings:
-            settings[str(line_no)].append(key)
+        if str(line_no) in self.view.terminal_view_color_regions:
+            self.view.terminal_view_color_regions[str(line_no)].appendleft(key)
         else:
-            settings[str(line_no)] = [key]
-
-        self.view.settings().set("terminal_view_color_regions", settings)
-
-
-    def _remove_color_regions_on_line(self, line_no):
-        settings = self.view.settings().get("terminal_view_color_regions", None)
-        if str(line_no) in settings:
-            regions = settings[str(line_no)]
-            for region in regions:
-                self.view.erase_regions(region)
-
+            self.view.terminal_view_color_regions[str(line_no)] = deque()
+            self.view.terminal_view_color_regions[str(line_no)].appendleft(key)
 
 class TerminalViewOnCloseCleanup(sublime_plugin.EventListener):
     def on_close(self, view):
@@ -222,6 +248,7 @@ class TerminalViewOnCloseCleanup(sublime_plugin.EventListener):
             del global_keypress_callbacks[view.id()]
 
 
+# TODO optimiza this is by far the slowest now
 def convert_pyte_buffer_lines_to_colormap(buffer, lines):
     color_map = {}
     for line_index in lines:
