@@ -78,6 +78,9 @@ Shortcut | Command | Description
 `ctrl` + `shift` + `w` | close | Close the terminal view
 `ctrl` + `shift` + `q` | close | Close the terminal view
 
+## Settings
+The settings are available in the menu: *Preferences->Package Settings->TerminalView*. Simply copy the settings wou want to change into your user settings which are also available in the menu. The only thing that is currently configurable is color support. This is disabled by default until further testing has been done.
+
 ## Color scheme
 The color scheme can be tweaked by copying the default color scheme into the user color scheme file. Both of these files are availble in the menu: *Preferences->Package Settings->TerminalView*.
 
