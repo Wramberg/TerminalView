@@ -1,5 +1,5 @@
 {
-  // Enable/disable showing colors set by the shell
+  // Enable/disable colors in the terminal view
   "terminal_view_show_colors": true,
 
   // Enable/disable debug printing to the console
