@@ -73,6 +73,7 @@ The default TerminalView keymap file is available in the menu: *Preferences->Pac
 Lastly, some keybindings in your user keymap file may shadow necessary TerminalView keybindings. To avoid this you must find the necessary keybindings in the TerminalView keymap file and copy them to your user keymap file similar to above.
 
 A few utility keybindings are also present which includes
+
 Shortcut | Command | Description
 --- | --- | ---
 `ctrl` + `shift` + `w` | close | Close the terminal view
