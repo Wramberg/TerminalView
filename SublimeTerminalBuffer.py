@@ -24,6 +24,10 @@ class SublimeTerminalBuffer():
         sublime_view.settings().set("caret_style", "blink")
         sublime_view.settings().add_on_change('color_scheme', lambda: set_color_scheme(sublime_view))
 
+        # Check if colors are enabled
+        settings = sublime.load_settings('TerminalView.sublime-settings')
+        self.show_colors = settings.get("terminal_view_show_colors", True)
+
         # Mark in the views private settings that this is a terminal view so we
         # can use this as context in the keymap
         sublime_view.settings().set("terminal_view", True)
@@ -53,7 +57,9 @@ class SublimeTerminalBuffer():
     def update_view(self):
         if len(self._screen.dirty) > 0:
             # Convert the complex pyte buffer to a simple color map
-            color_map = convert_pyte_buffer_lines_to_colormap(self._screen.buffer, self._screen.dirty)
+            color_map = {}
+            if self.show_colors:
+                color_map = convert_pyte_buffer_lines_to_colormap(self._screen.buffer, self._screen.dirty)
 
             # Update the view - note that the update is saved on the view
             # instead of being sent as an argument since this is faster and also
