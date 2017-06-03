@@ -9,6 +9,6 @@
   // {
   //   "caption": "Open Terminal View - IPython",
   //   "command": "terminal_view_open",
-  //   "args"   : {"title": "Terminal (IPython)", "cmd": "/usr/bin/ipython"},
+  //   "args"   : {"title": "Terminal (IPython)", "cmd": "/bin/bash -l -c /usr/bin/ipython},
   // },
 ]
