@@ -48,43 +48,41 @@ class LinuxPty():
         return self._process is not None and self._process.poll() is None
 
     def send_keypress(self, key, ctrl=False, alt=False, shift=False, super=False):
-        # If control was pressed together with single key
-        if ctrl and len(key) is 1:
-            self._send_control_key_combination(key)
-            return
+        if ctrl:
+            keycode = self._get_ctrl_combination_key_code(key)
+        elif alt:
+            keycode = self._get_alt_combination_key_code(key)
+        else:
+            keycode = self._get_key_code(key)
 
-        # If alt was pressed together with single key
-        if alt:
-            self._send_alt_key_combination(key)
-            return
+        self._send_string(keycode)
 
-        key = convert_key_to_ansi(key)
-        self._send_string(key)
-
-    def _send_control_key_combination(self, key):
-        # Convert to lower case and get unicode representation of char
-        char = key.lower()
-        a = ord(char)
-
-        if a>=97 and a<=122:
-            a = a - ord('a') + 1
-            return self._send_string(chr(a))
-
-        # Handle special chars
-        d = {'@': 0, '`': 0, '[': 27, '{': 27, '\\': 28, '|': 28, ']': 29,
-             '}': 29, '^': 30, '~': 30, '_': 31, '?': 127}
-
-        if char in d:
-            self._send_string(chr(d[char]))
-
-        return None
-
-    def _send_alt_key_combination(self, key):
+    def _get_ctrl_combination_key_code(self, key):
         key = key.lower()
-        if key in _LINUX_KEY_MAP:
-            key = _LINUX_KEY_MAP[key]
+        if key in _LINUX_CTRL_KEY_MAP:
+            return _LINUX_CTRL_KEY_MAP[key]
+        elif len(key) == 1:
+            unicode = ord(key)
+            if unicode>=97 and unicode<=122:
+                unicode = unicode - ord('a') + 1
+                return chr(unicode)
+            else:
+                return self._get_key_code(key)
+        else:
+            return self._get_key_code(key)
 
-        return self._send_string("\x1b" + key)
+    def _get_alt_combination_key_code(self, key):
+        key = key.lower()
+        if key in _LINUX_ALT_KEY_MAP:
+            return _LINUX_ALT_KEY_MAP[key]
+        else:
+            code = self._get_key_code(key)
+            return "\x1b" + code
+
+    def _get_key_code(self, key):
+        if key in _LINUX_KEY_MAP:
+            return _LINUX_KEY_MAP[key]
+        return key
 
     def _send_string(self, string):
         if self.is_running():
@@ -106,6 +104,7 @@ _LINUX_KEY_MAP = {
     "pageup": "\x1b[5~",
     "pagedown": "\x1b[6~",
     "delete": "\x1b[3~",
+    "insert": "\x1b[2~",
     "f1": "\x1bOP",
     "f2": "\x1bOQ",
     "f3": "\x1bOR",
@@ -119,7 +118,28 @@ _LINUX_KEY_MAP = {
     "f12": "\x1b[24~",
 }
 
-def convert_key_to_ansi(key):
-    if key in _LINUX_KEY_MAP:
-        return _LINUX_KEY_MAP[key]
-    return key
+_LINUX_CTRL_KEY_MAP = {
+    "up": "\x1b[1;5A",
+    "down": "\x1b[1;5B",
+    "right": "\x1b[1;5C",
+    "left": "\x1b[1;5D",
+    "@": "\x00",
+    "`": "\x00",
+    "[": "\x1b",
+    "{": "\x1b",
+    "\\": "\x1c",
+    "|": "\x1c",
+    "]": "\x1d",
+    "}": "\x1d",
+    "^": "\x1e",
+    "~": "\x1e",
+    "_": "\x1f",
+    "?": "\x7f",
+}
+
+_LINUX_ALT_KEY_MAP = {
+    "up": "\x1b[1;3A",
+    "down": "\x1b[1;3B",
+    "right": "\x1b[1;3C",
+    "left": "\x1b[1;3D",
+}
