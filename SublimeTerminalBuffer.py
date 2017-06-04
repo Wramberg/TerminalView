@@ -45,7 +45,7 @@ class SublimeTerminalBuffer():
 
         # Use pyte as underlying terminal emulator
         self._bytestream = pyte.ByteStream()
-        self._screen = pyte.DiffScreen(80, 24)
+        self._screen = pyte.DiffScreen(400, 150)
         self._bytestream.attach(self._screen)
 
     def set_keypress_callback(self, callback):
