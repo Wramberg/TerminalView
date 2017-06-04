@@ -66,9 +66,9 @@ The following keys are forwarded to the shell by default:
 * Any `alt`+`<char>` combination
 * Any `ctrl`+`<arrow key>` combination
 
-Note that `ctrl`+`<sign>` combinations are not forwarded as they depend on keyboard layout. The default keymap is available in the menu: *Preferences->Package Settings-> TerminalView*. Copy and adjust any missing keybindings into your user keymap.
+Note that `ctrl`+`<sign>` combinations are not forwarded as they depend on keyboard layout. The default keymap is available in the menu: *Preferences->Package Settings->TerminalView*. Copy and adjust any missing keybindings into your user keymap.
 
-**If some of your keybindings are missing they are probably shadowed by keybindings in your user keymap.** To fix this find the missing keybindings in the default keymap and copy them into your user keymap. For example, if you have bound `alt`+`f` in your user keymap you need to insert the following in your user keymap as well:
+**If some of the keybindings are not working they are probably shadowed by keybindings in your user keymap.** To fix this find the missing keybindings in the default keymap and copy them into your user keymap. For example, if you have bound `alt`+`f` in your user keymap you need to insert the following in your user keymap as well:
 
 ```
 {"keys": ["alt+f"], "command": "terminal_view_keypress", "args": {"key": "f", "alt": true}, "context": [{"key": "setting.terminal_view"}]},
