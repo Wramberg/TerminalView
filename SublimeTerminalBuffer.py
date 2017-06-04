@@ -1,4 +1,5 @@
 import collections
+import time
 
 import sublime
 import sublime_plugin
@@ -56,6 +57,9 @@ class SublimeTerminalBuffer():
 
     def update_view(self):
         if len(self._screen.dirty) > 0:
+            # Time update time
+            start = time.time()
+
             # Convert the complex pyte buffer to a simple color map
             color_map = {}
             if self.show_colors:
@@ -72,6 +76,9 @@ class SublimeTerminalBuffer():
             }
             self._view.terminal_view_buffer_update = update
             self._view.run_command("terminal_view_update_lines")
+
+            update_time = time.time() - start
+            utils.log_to_console("Updated terminal view in %.3f ms" % (update_time*1000.))
 
         self._update_cursor()
         self._screen.dirty.clear()
