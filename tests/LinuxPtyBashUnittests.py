@@ -26,8 +26,7 @@ class BashTestBase(unittest.TestCase):
 
         # Read the initial prompt
         time.sleep(0.1)
-        data = self.linux_pty_bash.receive_output(1024, timeout=5)
-        self._bash_prompt = data.decode('ascii')
+        self.linux_pty_bash.receive_output(1024, timeout=1)
 
     def tearDown(self):
         """
@@ -56,7 +55,7 @@ class BashTestBase(unittest.TestCase):
         """
         data = b''
         start = time.time()
-        while (len(data) < num_bytes) and (time.time() < start + timeout) :
+        while (len(data) < num_bytes) and (time.time() < start + timeout):
             new_data = self.linux_pty_bash.receive_output(4092, timeout=0.01)
             if new_data is not None:
                 data = data + new_data
@@ -77,7 +76,7 @@ class BashIOTest(BashTestBase):
         # Send each input to the shell
         for char in input_list:
             self.linux_pty_bash.send_keypress(char)
-            data = self.linux_pty_bash.receive_output(32, timeout=1)
+            data = self.linux_pty_bash.receive_output(32, timeout=0.01)
             self.assertEqual(len(data), 1)
             self.assertEqual(data.decode('ascii'), char)
 
@@ -118,7 +117,7 @@ class BashIOTest(BashTestBase):
             # Check response
             if key == "tab":
                 expected_response = " "
-                data = self._read_bytes_from_shell(64, timeout=0.2)
+                data = self._read_bytes_from_shell(64, timeout=0.1)
                 data = data.decode('ascii')
                 for char in data:
                     self.assertEqual(char, " ")
@@ -147,7 +146,7 @@ class BashIOTest(BashTestBase):
             # Read back result we expect ^A, ^B, ^C, etc. Note that the ctrl+i
             # and ctrl+j combination are ignored and translates differently
             if char == "i":
-                data = self._read_bytes_from_shell(64, timeout=0.2)
+                data = self._read_bytes_from_shell(64, timeout=0.1)
                 data = data.decode('ascii')
                 # Ensure data is only spaces
                 for char in data:
@@ -215,33 +214,6 @@ class BashIOTest(BashTestBase):
 
 
 class BashResizeTest(BashTestBase):
-   def test_line_wrapping(self):
-        """
-        Ensure that resize events are sent and handled correctly by the shell
-        """
-        screen_sizes = [(80, 500), (800, 45), (30, 250)]
-
-        for size in screen_sizes:
-            self.linux_pty_bash.update_screen_size(size[0], size[1])
-            self._reset_shell_output()
-            screen_left = size[1] - len(self._bash_prompt)
-
-            # Wrap lines a few times to see that it works
-            for i in range(5):
-                # Fill screen width
-                for i in range(0, screen_left-1):
-                    self.linux_pty_bash.send_keypress("W")
-                    data = self._read_bytes_from_shell(1)
-                    self.assertEqual(len(data), 1)
-                    self.assertEqual(data.decode('ascii'), "W")
-
-                # Next char should cause line to wrap
-                self.linux_pty_bash.send_keypress("W")
-                data = self._read_bytes_from_shell(3)
-                self.assertEqual(len(data), 3)
-                self.assertEqual(data.decode('ascii'), "W \r")
-                screen_left = size[1]
-
    def test_tput_output(self):
         screen_sizes = [(80, 500), (800, 45), (30, 250)]
 
@@ -254,11 +226,11 @@ class BashResizeTest(BashTestBase):
                 self.linux_pty_bash.send_keypress(char)
 
             # Read the prompt and chars we dont need it
-            self._read_bytes_from_shell(512, timeout=0.2)
+            self._read_bytes_from_shell(512, timeout=0.1)
             self.linux_pty_bash.send_keypress("enter")
 
             # Read output of shell script
-            data = self._read_bytes_from_shell(512, timeout=0.2)
+            data = self._read_bytes_from_shell(512, timeout=0.1)
             data = data.decode('ascii')
             data = data.split("\r\n")
             cols = data[1]

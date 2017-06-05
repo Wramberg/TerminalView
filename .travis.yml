@@ -4,18 +4,26 @@ sudo: false
 matrix:
   include:
     - os: linux
+      env: SETUP="linux 3.2"
       python: 3.2
 
     - os: linux
+      env: SETUP="linux 3.6"
       python: 3.6
 
     - os: osx
-      python: 3.2
+      env: SETUP="osx"
+      language: generic
+      before_install:
+        - brew update
+        - brew install python3
+        - virtualenv env -p python3
+        - source env/bin/activate
 
-    - os: osx
-      python: 3.6
-
-before_install:
+# - os: osx
+# env: SETUP="osx 3.6"
+# python: 3.6
+# before_install:
 
 install:
 
@@ -23,6 +31,7 @@ before_script:
    - uname -a
    - python --version
    - python3 --version
+   - bash --version
 
 script:
    - python3 tests/LinuxPtyBashUnittests.py -v
