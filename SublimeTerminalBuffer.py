@@ -11,19 +11,19 @@ from . import utils
 class SublimeTerminalBuffer():
     def __init__(self, sublime_view, title):
         self._view = sublime_view
-        sublime_view.set_name(title)
-        sublime_view.set_scratch(True)
-        sublime_view.set_read_only(True)
-        sublime_view.settings().set("gutter", False)
-        sublime_view.settings().set("highlight_line", False)
-        sublime_view.settings().set("auto_complete_commit_on_tab", False)
-        sublime_view.settings().set("draw_centered", False)
-        sublime_view.settings().set("word_wrap", False)
-        sublime_view.settings().set("auto_complete", False)
-        sublime_view.settings().set("draw_white_space", "none")
-        sublime_view.settings().set("draw_indent_guides", False)
-        sublime_view.settings().set("caret_style", "blink")
-        sublime_view.settings().add_on_change('color_scheme', lambda: set_color_scheme(sublime_view))
+        self._view.set_name(title)
+        self._view.set_scratch(True)
+        self._view.set_read_only(True)
+        self._view.settings().set("gutter", False)
+        self._view.settings().set("highlight_line", False)
+        self._view.settings().set("auto_complete_commit_on_tab", False)
+        self._view.settings().set("draw_centered", False)
+        self._view.settings().set("word_wrap", False)
+        self._view.settings().set("auto_complete", False)
+        self._view.settings().set("draw_white_space", "none")
+        self._view.settings().set("draw_indent_guides", False)
+        self._view.settings().set("caret_style", "blink")
+        self._view.settings().add_on_change('color_scheme', lambda: set_color_scheme(self._view))
 
         # Check if colors are enabled
         settings = sublime.load_settings('TerminalView.sublime-settings')
@@ -31,18 +31,18 @@ class SublimeTerminalBuffer():
 
         # Mark in the views private settings that this is a terminal view so we
         # can use this as context in the keymap
-        sublime_view.settings().set("terminal_view", True)
-        sublime.active_window().focus_view(sublime_view)
+        self._view.settings().set("terminal_view", True)
+        sublime.active_window().focus_view(self._view)
 
         # Save a dict on the view to store color regions for each line
-        sublime_view.terminal_view_color_regions = {}
+        self._view.terminal_view_color_regions = {}
 
         # Save keypress callback for this view
-        sublime_view.terminal_view_keypress_callback = None
+        self._view.terminal_view_keypress_callback = None
 
         # Keep track of the content in the buffer (having a local copy is a lot
         # faster than using the ST3 API to get the contents)
-        sublime_view.terminal_view_buffer_contents = {}
+        self._view.terminal_view_buffer_contents = {}
 
         # Use pyte as underlying terminal emulator
         self._bytestream = pyte.ByteStream()
@@ -63,7 +63,8 @@ class SublimeTerminalBuffer():
             # Convert the complex pyte buffer to a simple color map
             color_map = {}
             if self.show_colors:
-                color_map = convert_pyte_buffer_lines_to_colormap(self._screen.buffer, self._screen.dirty)
+                color_map = convert_pyte_buffer_lines_to_colormap(self._screen.buffer,
+                                                                  self._screen.dirty)
 
             # Update the view - note that the update is saved on the view
             # instead of being sent as an argument since this is faster and also
@@ -78,7 +79,7 @@ class SublimeTerminalBuffer():
             self._view.run_command("terminal_view_update_lines")
 
             update_time = time.time() - start
-            utils.log_to_console("Updated terminal view in %.3f ms" % (update_time*1000.))
+            utils.log_to_console("Updated terminal view in %.3f ms" % (update_time * 1000.))
 
         self._update_cursor()
         self._screen.dirty.clear()
@@ -109,11 +110,11 @@ class SublimeTerminalBuffer():
         if pixel_per_line == 0 or pixel_per_char == 0:
             return (0, 0)
 
-        nb_columns = int(pixel_width/pixel_per_char) - 2
+        nb_columns = int(pixel_width / pixel_per_char) - 2
         if nb_columns < 40:
             nb_columns = 40
 
-        nb_rows = int(pixel_height/pixel_per_line)
+        nb_rows = int(pixel_height / pixel_per_line)
         if nb_rows < 20:
             nb_rows = 20
 
@@ -229,7 +230,7 @@ class TerminalViewUpdateLines(sublime_plugin.TextCommand):
             color_start = line_start + idx
 
             # Make region that should be colored
-            buffer_region = sublime.Region(color_start, color_start+length)
+            buffer_region = sublime.Region(color_start, color_start + length)
             region_key = "%i,%s" % (line_no, idx)
 
             # Add the region

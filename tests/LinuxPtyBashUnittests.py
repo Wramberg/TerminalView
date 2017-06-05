@@ -106,7 +106,7 @@ class BashIOTest(BashTestBase):
         }
 
         # Send each input to the shell
-        iter_nb = 1
+        i = 1
         for key in keymap:
             # Use verbatim insert to see which keys are pressed
             self._prepare_verbatim_insert()
@@ -124,11 +124,11 @@ class BashIOTest(BashTestBase):
             else:
                 expected_response = keymap[key]
                 data = self._read_bytes_from_shell(len(expected_response))
-                fail_msg = "Iter: [%i], Key: [%s], Data: [%s]" % (iter_nb, key, data.decode('ascii'))
+                fail_msg = "Iter: [%i], Key: [%s], Data: [%s]" % (i, key, data.decode('ascii'))
                 self.assertEqual(len(data), len(expected_response), msg=fail_msg)
                 self.assertEqual(data.decode('ascii'), expected_response, msg=fail_msg)
 
-            iter_nb = iter_nb + 1
+            i = i + 1
 
     def test_ctrl_key_combinations(self):
         """
@@ -161,7 +161,7 @@ class BashIOTest(BashTestBase):
             else:
                 data = self._read_bytes_from_shell(2)
                 self.assertEqual(len(data), 2)
-                self.assertEqual(data.decode('ascii'), "^"+char.upper())
+                self.assertEqual(data.decode('ascii'), "^" + char.upper())
 
     def test_ctrl_key_sign_combinations(self):
         """
@@ -215,11 +215,11 @@ class BashIOTest(BashTestBase):
             data = self._read_bytes_from_shell(3)
             fail_msg = "Char: [%s], Data: [%s]" % (char, data.decode('ascii'))
             self.assertEqual(len(data), 3, msg=fail_msg)
-            self.assertEqual(data.decode('ascii'), "^["+char, msg=fail_msg)
+            self.assertEqual(data.decode('ascii'), "^[" + char, msg=fail_msg)
 
 
 class BashResizeTest(BashTestBase):
-   def test_tput_output(self):
+    def test_tput_output(self):
         screen_sizes = [(80, 500), (800, 45), (30, 250)]
 
         # Get the screen size a shell script reads when run in the terminal
