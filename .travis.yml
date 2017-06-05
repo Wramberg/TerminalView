@@ -6,6 +6,12 @@ matrix:
     - os: linux
       env: SETUP="linux 3.2"
       python: 3.2
+      before_install:
+        - pip install flake8
+        - pip install pylint
+      # after_success:
+        # - flake8 *.py
+        # - pylint *.py
 
     - os: linux
       env: SETUP="linux 3.6"
@@ -19,11 +25,6 @@ matrix:
         - brew install python3
         - virtualenv env -p python3
         - source env/bin/activate
-
-# - os: osx
-# env: SETUP="osx 3.6"
-# python: 3.6
-# before_install:
 
 install:
 

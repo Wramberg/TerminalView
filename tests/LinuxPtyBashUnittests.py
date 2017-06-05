@@ -120,12 +120,13 @@ class BashIOTest(BashTestBase):
                 data = self._read_bytes_from_shell(64, timeout=0.1)
                 data = data.decode('ascii')
                 for char in data:
-                    self.assertEqual(char, " ")
+                    self.assertEqual(char, " ", msg="Non-space in tab")
             else:
                 expected_response = keymap[key]
                 data = self._read_bytes_from_shell(len(expected_response))
-                self.assertEqual(len(data), len(expected_response))
-                self.assertEqual(data.decode('ascii'), expected_response)
+                fail_msg = "Key: [%s], Data: [%s]" % (key, data.decode('ascii'))
+                self.assertEqual(len(data), len(expected_response), msg=fail_msg)
+                self.assertEqual(data.decode('ascii'), expected_response, msg=fail_msg)
 
     def test_ctrl_key_combinations(self):
         """
@@ -188,8 +189,9 @@ class BashIOTest(BashTestBase):
             # Read back result we expect ^[, ^\, ^], etc.
             expected_response = keymap[sign]
             data = self._read_bytes_from_shell(len(expected_response))
-            self.assertEqual(len(data), len(expected_response))
-            self.assertEqual(data.decode('ascii'), expected_response)
+            fail_msg = "Sign: [%s], Data: [%s]" % (sign, data.decode('ascii'))
+            self.assertEqual(len(data), len(expected_response), msg=fail_msg)
+            self.assertEqual(data.decode('ascii'), expected_response, msg=fail_msg)
 
     def test_alt_key_combinations(self):
         """
@@ -209,8 +211,9 @@ class BashIOTest(BashTestBase):
 
             # Read back result we expect ^[a, ^[b, ^[c, etc.
             data = self._read_bytes_from_shell(3)
-            self.assertEqual(len(data), 3)
-            self.assertEqual(data.decode('ascii'), "^["+char)
+            fail_msg = "Char: [%s], Data: [%s]" % (char, data.decode('ascii'))
+            self.assertEqual(len(data), 3, msg=fail_msg)
+            self.assertEqual(data.decode('ascii'), "^["+char, msg=fail_msg)
 
 
 class BashResizeTest(BashTestBase):
