@@ -1,17 +1,22 @@
+"""
+Unittests of the LinuxPty module when using bash as shell
+"""
 import sys
 import os
-
-dir_path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-sys.path.append(dir_path)
-
 import unittest
 import time
+
+DIR_PATH = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+sys.path.append(DIR_PATH)
 
 # Module to test
 import LinuxPty
 
 
 class BashTestBase(unittest.TestCase):
+    """
+    Some helper functions for bash testcases
+    """
     def setUp(self):
         """
         Start bash shell
@@ -62,6 +67,9 @@ class BashTestBase(unittest.TestCase):
 
 
 class BashIOTest(BashTestBase):
+    """
+    Bash IO testcase
+    """
     def test_single_ascii_chars(self):
         """
         Ensure that the LinuxPty module can send all single chars, numbers,
@@ -146,8 +154,8 @@ class BashIOTest(BashTestBase):
                 data = self._read_bytes_from_shell(64, timeout=1)
                 data = data.decode('ascii')
                 # Ensure data is only spaces
-                for char in data:
-                    self.assertEqual(char, " ")
+                for character in data:
+                    self.assertEqual(character, " ")
             elif char == "j":
                 data = self._read_bytes_from_shell(3, timeout=5)
                 self.assertEqual(len(data), 3)
@@ -212,7 +220,14 @@ class BashIOTest(BashTestBase):
 
 
 class BashResizeTest(BashTestBase):
+    """
+    Bash scren resize testcase
+    """
     def test_tput_output(self):
+        """
+        Ensure tput reports the correct screen sizes when executed in the bash
+        shell
+        """
         screen_sizes = [(80, 500), (800, 45), (30, 250)]
 
         # Get the screen size a shell script reads when run in the terminal

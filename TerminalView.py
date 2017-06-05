@@ -1,3 +1,8 @@
+"""
+Main module for the TerminalView plugin with commands for opening and
+Initializing a terminal view
+"""
+
 import os
 import threading
 import time
@@ -46,7 +51,7 @@ class TerminalViewCore(sublime_plugin.TextCommand):
     Main command to glue all parts together for a single instance of a terminal
     view. For each sublime view an instance of this class exists.
     """
-    def run(self, edit, cmd, title, cwd):
+    def run(self, _, cmd, title, cwd):
         """
         Initialize the view, in which this command is called, as a terminal
         view.
@@ -92,7 +97,7 @@ class TerminalViewCore(sublime_plugin.TextCommand):
         of frames per second, and keeps input and output synchronized.
         """
         # 30 frames per second should be responsive enough
-        IDEAL_DELTA = 1.0 / 30.0
+        ideal_delta = 1.0 / 30.0
         current = time.time()
         while not self._stopped():
             self._poll_shell_output()
@@ -102,7 +107,7 @@ class TerminalViewCore(sublime_plugin.TextCommand):
             previous = current
             current = time.time()
             actual_delta = current - previous
-            time_left = IDEAL_DELTA - actual_delta
+            time_left = ideal_delta - actual_delta
             if time_left > 0.0:
                 time.sleep(time_left)
 

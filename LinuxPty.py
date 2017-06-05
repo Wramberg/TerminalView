@@ -1,3 +1,6 @@
+"""
+Wrapper module around a Linux PTY which can be used to start an underlying shell
+"""
 import os
 import select
 import subprocess
@@ -6,11 +9,15 @@ import struct
 try:
     import fcntl
     import termios
-except:
+except ImportError:
     pass
 
 
 class LinuxPty():
+    """
+    Linux PTY class that starts an underlying and provides methods for
+    communicating with it
+    """
     def __init__(self, cmd, cwd):
         self._cmd = cmd
         self._env = os.environ.copy()
@@ -22,32 +29,47 @@ class LinuxPty():
                                          cwd=cwd)
 
     def stop(self):
+        """
+        Stop the shell
+        """
         if self.is_running():
             self._process.kill()
         self._process = None
         return
 
     def receive_output(self, max_read_size, timeout=0):
+        """
+        Poll the shell output
+        """
         if not self.is_running():
             return None
 
-        (r, w, x) = select.select([self._pty], [], [], timeout)
-        if not r:
+        (ready, _, _) = select.select([self._pty], [], [], timeout)
+        if not ready:
             return None
 
         return os.read(self._pty, max_read_size)
 
     def update_screen_size(self, lines, columns):
+        """
+        Notify the shell of a terminal screen resize
+        """
         if self.is_running:
             # Note, assume ws_xpixel and ws_ypixel are zero.
-            TIOCSWINSZ = getattr(termios, 'TIOCSWINSZ', -2146929561)
-            s = struct.pack('HHHH', lines, columns, 0, 0)
-            fcntl.ioctl(self._pts, TIOCSWINSZ, s)
+            tiocswinsz = getattr(termios, 'TIOCSWINSZ', -2146929561)
+            size_update = struct.pack('HHHH', lines, columns, 0, 0)
+            fcntl.ioctl(self._pts, tiocswinsz, size_update)
 
     def is_running(self):
+        """
+        Check if the shell is running
+        """
         return self._process is not None and self._process.poll() is None
 
-    def send_keypress(self, key, ctrl=False, alt=False, shift=False, super=False):
+    def send_keypress(self, key, ctrl=False, alt=False, shift=False, meta=False):
+        """
+        Send keypress to the shell
+        """
         if ctrl:
             keycode = self._get_ctrl_combination_key_code(key)
         elif alt:
@@ -66,22 +88,22 @@ class LinuxPty():
             if (unicode >= 97) and (unicode <= 122):
                 unicode = unicode - ord('a') + 1
                 return chr(unicode)
-            else:
-                return self._get_key_code(key)
-        else:
             return self._get_key_code(key)
+
+        return self._get_key_code(key)
 
     def _get_alt_combination_key_code(self, key):
         key = key.lower()
         if key in _LINUX_ALT_KEY_MAP:
             return _LINUX_ALT_KEY_MAP[key]
-        else:
-            code = self._get_key_code(key)
-            return "\x1b" + code
+
+        code = self._get_key_code(key)
+        return "\x1b" + code
 
     def _get_key_code(self, key):
         if key in _LINUX_KEY_MAP:
             return _LINUX_KEY_MAP[key]
+
         return key
 
     def _send_string(self, string):
