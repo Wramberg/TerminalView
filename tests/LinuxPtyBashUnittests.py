@@ -122,9 +122,9 @@ class BashIOTest(BashTestBase):
             else:
                 expected_response = keymap[key]
                 data = self._read_bytes_from_shell(len(expected_response))
-                fail_msg = "Key: [%s], Data: [%s]" % (key, data.decode('ascii'))
-                self.assertEqual(len(data), len(expected_response), msg=fail_msg)
-                self.assertEqual(data.decode('ascii'), expected_response, msg=fail_msg)
+                # fail_msg = "Key: [%s], Data: [%s]" % (key, data.decode('ascii'))
+                self.assertEqual(len(data), len(expected_response), msg=data)
+                self.assertEqual(data.decode('ascii'), expected_response, msg=data)
 
     def test_ctrl_key_combinations(self):
         """
