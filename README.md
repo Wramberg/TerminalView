@@ -2,8 +2,9 @@
 A Linux/macOS plugin for Sublime Text 3 that allows for terminals inside editor views. The plugin uses a pseudo-terminal to start the underlying shell which means it supports
 
 * Interactive applications
+* Auto-completion
+* Terminal shortcuts (`ctrl`+`c`, etc.)
 * Password prompts
-* Piping
 * etc.
 
 **Note that you may have to insert some keybindings in your user keymap for everything to work - see the keybindings section for details. Furthermore, the plugin is quite new and still needs lots of testing.**
@@ -38,7 +39,7 @@ which does the same.
 ## Changing shell
 If you want to use another shell it is highly recommended to do this through bash with the -c command line argument. You can control the shell command through the *cmd* argument to the *terminal_view_open* command. In addition, you can also alter the title of the terminal view to reflect which shell is running.
 
-If you e.g. want to run an IPython shell when hitting ctrl+alt+t, add the following to your keymap file:
+If you e.g. want to run an IPython shell when hitting `ctrl`+`alt`+`t`, add the following to your keymap file:
 
 ```
 { "keys": ["ctrl+alt+t"], "command": "terminal_view_open", "args": {"cmd": "/bin/bash -l -c /usr/bin/ipython", "title": "Terminal (IPython)"}},
