@@ -1,0 +1,271 @@
+import sys
+import os
+
+dir_path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+sys.path.append(dir_path)
+
+import unittest
+import time
+import collections
+
+# Module to test
+import LinuxPty
+
+
+class BashTestBase(unittest.TestCase):
+    def setUp(self):
+        """
+        Start bash shell
+        """
+        cwd = os.path.dirname(os.path.abspath(__file__))
+        self.linux_pty_bash = LinuxPty.LinuxPty(["/bin/bash", "-l"], cwd)
+        self.assertTrue(self.linux_pty_bash.is_running())
+
+        # Update screen size to avoid wrapping during test
+        self.linux_pty_bash.update_screen_size(80, 500)
+
+        # Read the initial prompt
+        time.sleep(0.1)
+        data = self.linux_pty_bash.receive_output(1024, timeout=5)
+        self._bash_prompt = data.decode('ascii')
+
+    def tearDown(self):
+        """
+        Stop bash shell
+        """
+        self.assertTrue(self.linux_pty_bash.is_running())
+        self.linux_pty_bash.stop()
+        self.assertFalse(self.linux_pty_bash.is_running())
+
+    def _reset_shell_output(self):
+        self.linux_pty_bash.send_keypress("c", ctrl=True)
+        self._read_bytes_from_shell(8192, timeout=0.1)
+        self.linux_pty_bash.send_keypress("l", ctrl=True)
+        self._read_bytes_from_shell(8192, timeout=0.1)
+
+    def _prepare_verbatim_insert(self):
+        """
+        Prepare verbatim insert so the shell echoes the pressed key
+        """
+        self.linux_pty_bash.send_keypress("v", ctrl=True)
+        time.sleep(0.05) # Seems like shell needs a little time
+
+    def _read_bytes_from_shell(self, num_bytes, timeout=1):
+        """
+        Try to read X bytes from shell but timeout after Y seconds
+        """
+        data = b''
+        start = time.time()
+        while (len(data) < num_bytes) and (time.time() < start + timeout) :
+            new_data = self.linux_pty_bash.receive_output(4092, timeout=0.01)
+            if new_data is not None:
+                data = data + new_data
+
+        return data
+
+
+class BashIOTest(BashTestBase):
+    def test_single_ascii_chars(self):
+        """
+        Ensure that the LinuxPty module can send all single chars, numbers,
+        signs to bash and that they are received correctly
+        """
+        # Make a list of all single chars/numbers etc. from ascii value 33 to
+        # 126
+        input_list = [chr(a) for a in range(33, 127)]
+
+        # Send each input to the shell
+        for char in input_list:
+            self.linux_pty_bash.send_keypress(char)
+            data = self.linux_pty_bash.receive_output(32, timeout=1)
+            self.assertEqual(len(data), 1)
+            self.assertEqual(data.decode('ascii'), char)
+
+    def test_special_keys(self):
+        """
+        Ensure special keys like home, end, space, enter, arrow keys, etc. are
+        sent and handled corretly by the shell
+        """
+        # Tested in Linux term (TERM=linux) on Centos 7 the shell responded with
+        # the following. Note the user of OrderedDict to ensure keys are pressed
+        # in same order every test (number of spaces when tab is pressed depends
+        # on it).
+        keymap = collections.OrderedDict()
+        keymap["enter"] = "^M"
+        keymap["backspace"] = "^?"
+        keymap["tab"] = "   "
+        keymap["space"] = " "
+        keymap["escape"] = "^["
+        keymap["down"] = "^[[B"
+        keymap["up"] = "^[[A"
+        keymap["right"] = "^[[C"
+        keymap["left"] = "^[[D"
+        keymap["home"] = "^[[1~"
+        keymap["end"] = "^[[4~"
+        keymap["pageup"] = "^[[5~"
+        keymap["pagedown"] = "^[[6~"
+        keymap["delete"] = "^[[3~"
+        keymap["insert"] = "^[[2~"
+
+        # Send each input to the shell
+        for key in keymap:
+            # Use verbatim insert to see which keys are pressed
+            self._prepare_verbatim_insert()
+
+            # Send keypress
+            self.linux_pty_bash.send_keypress(key)
+
+            # Check response
+            if key == "tab":
+                expected_response = " "
+                data = self._read_bytes_from_shell(64, timeout=0.2)
+                data = data.decode('ascii')
+                for char in data:
+                    self.assertEqual(char, " ")
+            else:
+                expected_response = keymap[key]
+                data = self._read_bytes_from_shell(len(expected_response))
+                self.assertEqual(len(data), len(expected_response))
+                self.assertEqual(data.decode('ascii'), expected_response)
+
+    def test_ctrl_key_combinations(self):
+        """
+        Ensure that the LinuxPty module can send all ctrl + char combinations to
+        bash and that they are received correctly
+        """
+        # Make a list of all single chars from ascii value 97 to 122
+        input_list = [chr(a) for a in range(97, 123)]
+
+        # Send each input to the shell
+        for char in input_list:
+            # Use verbatim insert to see which keys are pressed
+            self._prepare_verbatim_insert()
+
+            # Send key
+            self.linux_pty_bash.send_keypress(char, ctrl=True)
+
+            # Read back result we expect ^A, ^B, ^C, etc. Note that the ctrl+i
+            # and ctrl+j combination are ignored and translates differently
+            if char == "i":
+                data = self._read_bytes_from_shell(64, timeout=0.2)
+                data = data.decode('ascii')
+                # Ensure data is only spaces
+                for char in data:
+                    self.assertEqual(char, " ")
+            elif char == "j":
+                data = self._read_bytes_from_shell(3)
+                self.assertEqual(len(data), 3)
+                self.assertEqual(data.decode('ascii'), "\r\n\r")
+            else:
+                data = self._read_bytes_from_shell(2)
+                self.assertEqual(len(data), 2)
+                self.assertEqual(data.decode('ascii'), "^"+char.upper())
+
+    def test_ctrl_key_sign_combinations(self):
+        """
+        Ensure that the LinuxPty module can send all ctrl + sign combinations to
+        bash and that they are received correctly
+        """
+        # Make a list of signs to test (note that arrow keys are included)
+        keymap = {
+            "[": "^[",
+            "\\": "^\\",
+            "]": "^]",
+            "^": "^^",
+            "_": "^_",
+            "?": "^?",
+            "left": "^[[1;5D",
+            "right": "^[[1;5C",
+        }
+
+        # Send each input to the shell
+        for sign in keymap:
+            # Use verbatim insert to see which keys are pressed
+            self._prepare_verbatim_insert()
+
+            # Send key
+            self.linux_pty_bash.send_keypress(sign, ctrl=True)
+
+            # Read back result we expect ^[, ^\, ^], etc.
+            expected_response = keymap[sign]
+            data = self._read_bytes_from_shell(len(expected_response))
+            self.assertEqual(len(data), len(expected_response))
+            self.assertEqual(data.decode('ascii'), expected_response)
+
+    def test_alt_key_combinations(self):
+        """
+        Ensure that the LinuxPty module can send all alt + char combinations to
+        bash and that they are received correctly
+        """
+        # Make a list of all single chars from ascii value 97 to 122
+        input_list = [chr(a) for a in range(97, 123)]
+
+        # Send each input to the shell
+        for char in input_list:
+            # Use verbatim insert to see which keys are pressed
+            self._prepare_verbatim_insert()
+
+            # Send key
+            self.linux_pty_bash.send_keypress(char, alt=True)
+
+            # Read back result we expect ^[a, ^[b, ^[c, etc.
+            data = self._read_bytes_from_shell(3)
+            self.assertEqual(len(data), 3)
+            self.assertEqual(data.decode('ascii'), "^["+char)
+
+
+class BashResizeTest(BashTestBase):
+   def test_line_wrapping(self):
+        """
+        Ensure that resize events are sent and handled correctly by the shell
+        """
+        screen_sizes = [(80, 500), (800, 45), (30, 250)]
+
+        for size in screen_sizes:
+            self.linux_pty_bash.update_screen_size(size[0], size[1])
+            self._reset_shell_output()
+            screen_left = size[1] - len(self._bash_prompt)
+
+            # Wrap lines a few times to see that it works
+            for i in range(5):
+                # Fill screen width
+                for i in range(0, screen_left-1):
+                    self.linux_pty_bash.send_keypress("W")
+                    data = self._read_bytes_from_shell(1)
+                    self.assertEqual(len(data), 1)
+                    self.assertEqual(data.decode('ascii'), "W")
+
+                # Next char should cause line to wrap
+                self.linux_pty_bash.send_keypress("W")
+                data = self._read_bytes_from_shell(3)
+                self.assertEqual(len(data), 3)
+                self.assertEqual(data.decode('ascii'), "W \r")
+                screen_left = size[1]
+
+   def test_tput_output(self):
+        screen_sizes = [(80, 500), (800, 45), (30, 250)]
+
+        # Get the screen size a shell script reads when run in the terminal
+        cmd = "sh echo_screen_size.sh"
+        for size in screen_sizes:
+            self.linux_pty_bash.update_screen_size(size[0], size[1])
+            self._reset_shell_output()
+            for char in cmd:
+                self.linux_pty_bash.send_keypress(char)
+
+            # Read the prompt and chars we dont need it
+            self._read_bytes_from_shell(512, timeout=0.2)
+            self.linux_pty_bash.send_keypress("enter")
+
+            # Read output of shell script
+            data = self._read_bytes_from_shell(512, timeout=0.2)
+            data = data.decode('ascii')
+            data = data.split("\r\n")
+            cols = data[1]
+            lines = data[2]
+            self.assertEqual(int(lines), size[0])
+            self.assertEqual(int(cols), size[1])
+
+
+if __name__ == "__main__":
+    unittest.main()

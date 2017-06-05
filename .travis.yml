@@ -1,0 +1,38 @@
+language: python
+sudo: false
+
+matrix:
+  include:
+    - os: linux
+      python: 3.2
+
+    - os: linux
+      python: 3.6
+
+    - os: osx
+      python: 3.2
+
+    - os: osx
+      python: 3.6
+
+before_install:
+
+install:
+
+before_script:
+   - uname -a
+   - python --version
+   - python3 --version
+
+script:
+   - python3 tests/LinuxPtyBashUnittests.py -v
+
+after_success:
+
+after_failure:
+
+after_script:
+   - ls -al
+
+notifications:
+  email: false

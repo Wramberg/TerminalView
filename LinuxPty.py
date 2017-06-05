@@ -27,11 +27,11 @@ class LinuxPty():
         self._process = None
         return
 
-    def receive_output(self, max_read_size):
+    def receive_output(self, max_read_size, timeout=0):
         if not self.is_running():
             return None
 
-        (r, w, x) = select.select([self._pty], [], [], 0)
+        (r, w, x) = select.select([self._pty], [], [], timeout)
         if not r:
             return None
 
