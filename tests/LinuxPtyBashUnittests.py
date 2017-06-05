@@ -186,7 +186,6 @@ class BashIOTest(BashTestBase):
             # Read back result we expect ^[, ^\, ^], etc.
             expected_response = keymap[sign]
             data = self._read_bytes_from_shell(len(expected_response))
-            # fail_msg = "Sign: [%s], Data: [%s]" % (sign, data.decode('ascii'))
             self.assertEqual(len(data), len(expected_response), msg=data)
             self.assertEqual(data.decode('ascii'), expected_response, msg=data)
 
@@ -208,9 +207,9 @@ class BashIOTest(BashTestBase):
 
             # Read back result we expect ^[a, ^[b, ^[c, etc.
             data = self._read_bytes_from_shell(3)
-            # fail_msg = "Char: [%s], Data: [%s]" % (char, data.decode('ascii'))
-            self.assertEqual(len(data), 3, msg=data)
-            self.assertEqual(data.decode('ascii'), "^[" + char, msg=data)
+            fail_msg = "Char: [%s], Data: [%s]" % (char, data.decode('ascii'))
+            self.assertEqual(len(data), 3, msg=fail_msg)
+            self.assertEqual(data.decode('ascii'), "^[" + char, msg=fail_msg)
 
 
 class BashResizeTest(BashTestBase):
