@@ -4,7 +4,7 @@ sudo: false
 matrix:
   include:
     - os: linux
-      env: SETUP="linux 3.2"
+      env: SETUP="linux python 3.2"
       python: 3.2
       before_install:
         - pip install flake8
@@ -13,7 +13,7 @@ matrix:
         - flake8 --max-line-length 100 --ignore E402 *.py tests/*.py
 
     - os: linux
-      env: SETUP="linux 3.6"
+      env: SETUP="linux python 3.6"
       python: 3.6
 
 install:

@@ -24,8 +24,7 @@ class BashTestBase(unittest.TestCase):
         self.linux_pty_bash.update_screen_size(80, 500)
 
         # Read the initial prompt
-        time.sleep(0.1)
-        self.linux_pty_bash.receive_output(1024, timeout=1)
+        self.linux_pty_bash.receive_output(1024, timeout=0.2)
 
     def tearDown(self):
         """
@@ -37,9 +36,9 @@ class BashTestBase(unittest.TestCase):
 
     def _reset_shell_output(self):
         self.linux_pty_bash.send_keypress("c", ctrl=True)
-        self._read_bytes_from_shell(8192, timeout=0.1)
+        self._read_bytes_from_shell(1024, timeout=0.1)
         self.linux_pty_bash.send_keypress("l", ctrl=True)
-        self._read_bytes_from_shell(8192, timeout=0.1)
+        self._read_bytes_from_shell(1024, timeout=0.1)
 
     def _prepare_verbatim_insert(self):
         """
@@ -47,7 +46,7 @@ class BashTestBase(unittest.TestCase):
         """
         self.linux_pty_bash.send_keypress("v", ctrl=True)
         # Read bytes if shell sends any
-        self._read_bytes_from_shell(8192, timeout=0.05)
+        self._read_bytes_from_shell(1024, timeout=0.1)
 
     def _read_bytes_from_shell(self, num_bytes, timeout=1):
         """
@@ -56,7 +55,7 @@ class BashTestBase(unittest.TestCase):
         data = b''
         start = time.time()
         while (len(data) < num_bytes) and (time.time() < start + timeout):
-            new_data = self.linux_pty_bash.receive_output(4092, timeout=0.01)
+            new_data = self.linux_pty_bash.receive_output(2048, timeout=0.1)
             if new_data is not None:
                 data = data + new_data
 
@@ -106,7 +105,6 @@ class BashIOTest(BashTestBase):
         }
 
         # Send each input to the shell
-        i = 1
         for key in keymap:
             # Use verbatim insert to see which keys are pressed
             self._prepare_verbatim_insert()
@@ -124,11 +122,9 @@ class BashIOTest(BashTestBase):
             else:
                 expected_response = keymap[key]
                 data = self._read_bytes_from_shell(len(expected_response))
-                fail_msg = "Iter: [%i], Key: [%s], Data: [%s]" % (i, key, data.decode('ascii'))
+                fail_msg = "Key: [%s], Data: [%s]" % (key, data.decode('ascii'))
                 self.assertEqual(len(data), len(expected_response), msg=fail_msg)
                 self.assertEqual(data.decode('ascii'), expected_response, msg=fail_msg)
-
-            i = i + 1
 
     def test_ctrl_key_combinations(self):
         """
