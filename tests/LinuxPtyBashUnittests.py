@@ -23,8 +23,8 @@ class BashTestBase(unittest.TestCase):
         # Update screen size to avoid wrapping during test
         self.linux_pty_bash.update_screen_size(80, 500)
 
-        # Read the initial prompt
-        self.linux_pty_bash.receive_output(1024, timeout=0.2)
+        # Read the initial prompt - note this has to be placed after resize
+        self.linux_pty_bash.receive_output(1024, timeout=1)
 
     def tearDown(self):
         """
@@ -36,17 +36,16 @@ class BashTestBase(unittest.TestCase):
 
     def _reset_shell_output(self):
         self.linux_pty_bash.send_keypress("c", ctrl=True)
-        self._read_bytes_from_shell(1024, timeout=0.1)
+        self._read_bytes_from_shell(1024, timeout=0.5)
         self.linux_pty_bash.send_keypress("l", ctrl=True)
-        self._read_bytes_from_shell(1024, timeout=0.1)
+        self._read_bytes_from_shell(1024, timeout=0.5)
 
     def _prepare_verbatim_insert(self):
         """
         Prepare verbatim insert so the shell echoes the pressed key
         """
-        self._reset_shell_output()
         self.linux_pty_bash.send_keypress("v", ctrl=True)
-        time.sleep(0.1)
+        time.sleep(0.5)
 
     def _read_bytes_from_shell(self, num_bytes, timeout=1):
         """
@@ -75,7 +74,7 @@ class BashIOTest(BashTestBase):
         # Send each input to the shell
         for char in input_list:
             self.linux_pty_bash.send_keypress(char)
-            data = self.linux_pty_bash.receive_output(32, timeout=0.01)
+            data = self.linux_pty_bash.receive_output(1, timeout=1)
             self.assertEqual(len(data), 1)
             self.assertEqual(data.decode('ascii'), char)
 
@@ -115,7 +114,7 @@ class BashIOTest(BashTestBase):
             # Check response
             if key == "tab":
                 expected_response = " "
-                data = self._read_bytes_from_shell(64, timeout=0.1)
+                data = self._read_bytes_from_shell(64, timeout=1)
                 data = data.decode('ascii')
                 for char in data:
                     self.assertEqual(char, " ", msg="Non-space in tab")
@@ -144,17 +143,17 @@ class BashIOTest(BashTestBase):
             # Read back result we expect ^A, ^B, ^C, etc. Note that the ctrl+i
             # and ctrl+j combination are ignored and translates differently
             if char == "i":
-                data = self._read_bytes_from_shell(64, timeout=0.1)
+                data = self._read_bytes_from_shell(64, timeout=1)
                 data = data.decode('ascii')
                 # Ensure data is only spaces
                 for char in data:
                     self.assertEqual(char, " ")
             elif char == "j":
-                data = self._read_bytes_from_shell(3)
+                data = self._read_bytes_from_shell(3, timeout=5)
                 self.assertEqual(len(data), 3)
                 self.assertEqual(data.decode('ascii'), "\r\n\r")
             else:
-                data = self._read_bytes_from_shell(2)
+                data = self._read_bytes_from_shell(2, timeout=5)
                 self.assertEqual(len(data), 2)
                 self.assertEqual(data.decode('ascii'), "^" + char.upper())
 
@@ -185,7 +184,7 @@ class BashIOTest(BashTestBase):
 
             # Read back result we expect ^[, ^\, ^], etc.
             expected_response = keymap[sign]
-            data = self._read_bytes_from_shell(len(expected_response))
+            data = self._read_bytes_from_shell(len(expected_response), timeout=5)
             self.assertEqual(len(data), len(expected_response), msg=data)
             self.assertEqual(data.decode('ascii'), expected_response, msg=data)
 
@@ -206,7 +205,7 @@ class BashIOTest(BashTestBase):
             self.linux_pty_bash.send_keypress(char, alt=True)
 
             # Read back result we expect ^[a, ^[b, ^[c, etc.
-            data = self._read_bytes_from_shell(3)
+            data = self._read_bytes_from_shell(3, timeout=5)
             fail_msg = "Char: [%s], Data: [%s]" % (char, data.decode('ascii'))
             self.assertEqual(len(data), 3, msg=fail_msg)
             self.assertEqual(data.decode('ascii'), "^[" + char, msg=fail_msg)
