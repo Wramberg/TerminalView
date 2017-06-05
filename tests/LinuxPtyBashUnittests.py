@@ -17,7 +17,7 @@ class BashTestBase(unittest.TestCase):
         Start bash shell
         """
         cwd = os.path.dirname(os.path.abspath(__file__))
-        self.linux_pty_bash = LinuxPty.LinuxPty(["/bin/bash", "-l"], cwd)
+        self.linux_pty_bash = LinuxPty.LinuxPty("bash", cwd)
         self.assertTrue(self.linux_pty_bash.is_running())
 
         # Update screen size to avoid wrapping during test
@@ -44,9 +44,9 @@ class BashTestBase(unittest.TestCase):
         """
         Prepare verbatim insert so the shell echoes the pressed key
         """
+        self._reset_shell_output()
         self.linux_pty_bash.send_keypress("v", ctrl=True)
-        # Read bytes if shell sends any
-        self._read_bytes_from_shell(1024, timeout=0.1)
+        time.sleep(0.1)
 
     def _read_bytes_from_shell(self, num_bytes, timeout=1):
         """
@@ -122,7 +122,6 @@ class BashIOTest(BashTestBase):
             else:
                 expected_response = keymap[key]
                 data = self._read_bytes_from_shell(len(expected_response))
-                # fail_msg = "Key: [%s], Data: [%s]" % (key, data.decode('ascii'))
                 self.assertEqual(len(data), len(expected_response), msg=data)
                 self.assertEqual(data.decode('ascii'), expected_response, msg=data)
 
