@@ -63,7 +63,7 @@ class LinuxPty():
             return _LINUX_CTRL_KEY_MAP[key]
         elif len(key) == 1:
             unicode = ord(key)
-            if unicode>=97 and unicode<=122:
+            if (unicode >= 97) and (unicode <= 122):
                 unicode = unicode - ord('a') + 1
                 return chr(unicode)
             else:

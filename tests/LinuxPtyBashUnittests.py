@@ -6,7 +6,6 @@ sys.path.append(dir_path)
 
 import unittest
 import time
-import collections
 
 # Module to test
 import LinuxPty
@@ -47,7 +46,8 @@ class BashTestBase(unittest.TestCase):
         Prepare verbatim insert so the shell echoes the pressed key
         """
         self.linux_pty_bash.send_keypress("v", ctrl=True)
-        time.sleep(0.05) # Seems like shell needs a little time
+        # Read bytes if shell sends any
+        self._read_bytes_from_shell(8192, timeout=0.05)
 
     def _read_bytes_from_shell(self, num_bytes, timeout=1):
         """
@@ -86,27 +86,27 @@ class BashIOTest(BashTestBase):
         sent and handled corretly by the shell
         """
         # Tested in Linux term (TERM=linux) on Centos 7 the shell responded with
-        # the following. Note the user of OrderedDict to ensure keys are pressed
-        # in same order every test (number of spaces when tab is pressed depends
-        # on it).
-        keymap = collections.OrderedDict()
-        keymap["enter"] = "^M"
-        keymap["backspace"] = "^?"
-        keymap["tab"] = "   "
-        keymap["space"] = " "
-        keymap["escape"] = "^["
-        keymap["down"] = "^[[B"
-        keymap["up"] = "^[[A"
-        keymap["right"] = "^[[C"
-        keymap["left"] = "^[[D"
-        keymap["home"] = "^[[1~"
-        keymap["end"] = "^[[4~"
-        keymap["pageup"] = "^[[5~"
-        keymap["pagedown"] = "^[[6~"
-        keymap["delete"] = "^[[3~"
-        keymap["insert"] = "^[[2~"
+        # the following.
+        keymap = {
+            "enter": "^M",
+            "backspace": "^?",
+            "tab": "   ",
+            "space": " ",
+            "escape": "^[",
+            "down": "^[[B",
+            "up": "^[[A",
+            "right": "^[[C",
+            "left": "^[[D",
+            "home": "^[[1~",
+            "end": "^[[4~",
+            "pageup": "^[[5~",
+            "pagedown": "^[[6~",
+            "delete": "^[[3~",
+            "insert": "^[[2~",
+        }
 
         # Send each input to the shell
+        iter_nb = 1
         for key in keymap:
             # Use verbatim insert to see which keys are pressed
             self._prepare_verbatim_insert()
@@ -124,9 +124,11 @@ class BashIOTest(BashTestBase):
             else:
                 expected_response = keymap[key]
                 data = self._read_bytes_from_shell(len(expected_response))
-                fail_msg = "Key: [%s], Data: [%s]" % (key, data.decode('ascii'))
+                fail_msg = "Iter: [%i], Key: [%s], Data: [%s]" % (iter_nb, key, data.decode('ascii'))
                 self.assertEqual(len(data), len(expected_response), msg=fail_msg)
                 self.assertEqual(data.decode('ascii'), expected_response, msg=fail_msg)
+
+            iter_nb = iter_nb + 1
 
     def test_ctrl_key_combinations(self):
         """

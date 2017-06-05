@@ -37,8 +37,8 @@ class TerminalViewOpen(sublime_plugin.WindowCommand):
         if not cwd:
             cwd = os.environ["HOME"]
 
-        self.window.new_file().run_command("terminal_view_core",
-                args={"cmd": cmd, "title": title, "cwd": cwd})
+        args = {"cmd": cmd, "title": title, "cwd": cwd}
+        self.window.new_file().run_command("terminal_view_core", args=args)
 
 
 class TerminalViewCore(sublime_plugin.TextCommand):
