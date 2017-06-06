@@ -230,26 +230,33 @@ class BashResizeTest(BashTestBase):
         """
         screen_sizes = [(80, 500), (800, 45), (30, 250)]
 
-        # Get the screen size a shell script reads when run in the terminal
-        cmd = "sh echo_screen_size.sh"
+        # Get the screen size that tput reads when run in the shell
+        cols_cmd = "tput cols"
+        lines_cmd = "tput lines"
         for size in screen_sizes:
+            # Resize the screen and reset
             self.linux_pty_bash.update_screen_size(size[0], size[1])
             self._reset_shell_output()
-            for char in cmd:
-                self.linux_pty_bash.send_keypress(char)
 
-            # Read the prompt and chars we dont need it
-            self._read_bytes_from_shell(512, timeout=0.1)
+            # Send cols cmd
+            for char in cols_cmd:
+                self.linux_pty_bash.send_keypress(char)
             self.linux_pty_bash.send_keypress("enter")
 
-            # Read output of shell script
-            data = self._read_bytes_from_shell(512, timeout=0.1)
-            data = data.decode('ascii')
-            data = data.split("\r\n")
-            cols = data[1]
-            lines = data[2]
-            self.assertEqual(int(lines), size[0])
+            # Read output of the cmd
+            data = self._read_bytes_from_shell(512, timeout=0.5)
+            cols = data.decode('ascii').split("\r\n")[1]
             self.assertEqual(int(cols), size[1])
+
+            # Send lines cmd
+            for char in lines_cmd:
+                self.linux_pty_bash.send_keypress(char)
+            self.linux_pty_bash.send_keypress("enter")
+
+            # Read output of the cmd
+            data = self._read_bytes_from_shell(512, timeout=0.5)
+            lines = data.decode('ascii').split("\r\n")[1]
+            self.assertEqual(int(lines), size[0])
 
 
 if __name__ == "__main__":
