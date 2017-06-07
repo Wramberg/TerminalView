@@ -103,4 +103,6 @@ Development is performed ad-hoc and current plans include:
 * Support for more shells
 
 ## Acknowledgments
-During development the SublimePTY (https://github.com/wuub/SublimePTY) project was a good source of inspiration for some of the problems that occurred. You can probably find a few bits and pieces from it in this plugin.
+During development the SublimePTY plugin (https://github.com/wuub/SublimePTY) was a good source of inspiration for some of the problems that occurred. You can probably find a few bits and pieces from it in this plugin.
+
+For testing stubs and general test structure the Javatar plugin (https://github.com/spywhere/Javatar) was a good point of origin.

@@ -1,11 +1,13 @@
+import sys
+import os
 import collections
 import time
 
 import sublime
 import sublime_plugin
 
+from . import Utils
 from . import pyte
-from . import utils
 
 
 class SublimeTerminalBuffer():
@@ -56,7 +58,8 @@ class SublimeTerminalBuffer():
         self._bytestream.feed(data)
 
     def update_view(self):
-        if len(self._screen.dirty) > 0:
+        nb_dirty_lines = len(self._screen.dirty)
+        if nb_dirty_lines > 0:
             # Time update time
             start = time.time()
 
@@ -79,7 +82,7 @@ class SublimeTerminalBuffer():
             self._view.run_command("terminal_view_update_lines")
 
             update_time = time.time() - start
-            utils.log_to_console("Updated terminal view in %.3f ms" % (update_time * 1000.))
+            Utils.log_to_console("Updated terminal view in %.3f ms" % (update_time * 1000.))
 
         self._update_cursor()
         self._screen.dirty.clear()
@@ -128,14 +131,14 @@ class SublimeTerminalBuffer():
 
 
 class TerminalViewMoveCursor(sublime_plugin.TextCommand):
-    def run(self, edit, cursor_x, cursor_y):
+    def run(self, _, cursor_x, cursor_y):
         tp = self.view.text_point(cursor_y, cursor_x)
         self.view.sel().clear()
         self.view.sel().add(sublime.Region(tp, tp))
 
 
 class TerminalViewKeypress(sublime_plugin.TextCommand):
-    def run(self, edit, **kwargs):
+    def run(self, _, **kwargs):
         if type(kwargs["key"]) is not str:
             sublime.error_message("Terminal View: Got keypress with non-string key")
             return
@@ -154,7 +157,7 @@ class TerminalViewKeypress(sublime_plugin.TextCommand):
             kwargs["shift"] = False
 
         out_str = "Keypress registered: " + str(kwargs)
-        utils.log_to_console(out_str)
+        Utils.log_to_console(out_str)
 
         if self.view.terminal_view_keypress_callback:
             cb = self.view.terminal_view_keypress_callback
@@ -192,7 +195,7 @@ class TerminalViewUpdateLines(sublime_plugin.TextCommand):
         if line_no in self.view.terminal_view_color_regions:
             region_deque = self.view.terminal_view_color_regions[line_no]
             try:
-                while(1):
+                while True:
                     region = region_deque.popleft()
                     self.view.erase_regions(region)
             except IndexError:
@@ -275,11 +278,20 @@ def convert_pyte_buffer_lines_to_colormap(buffer, lines):
         # continuous fields with same color we want to combine them for
         # optimization and because it looks better when rendered in ST3.
         line = buffer[line_index]
-        if len(line) == 0:
+        line_len = len(line)
+        if line_len == 0:
             continue
 
         # Initialize vars to keep track of continuous colors
-        last_color = (line[0].bg, line[0].fg)
+        last_bg = line[0].bg
+        if last_bg == "default":
+            last_bg = "black"
+
+        last_fg = line[0].fg
+        if last_fg == "default":
+            last_fg = "white"
+
+        last_color = (last_bg, last_fg)
         last_index = 0
         field_length = 0
 
@@ -298,7 +310,6 @@ def convert_pyte_buffer_lines_to_colormap(buffer, lines):
                 fg = char.fg
 
             color = (bg, fg)
-
             if last_color == color:
                 field_length = field_length + 1
             else:
@@ -312,6 +323,13 @@ def convert_pyte_buffer_lines_to_colormap(buffer, lines):
                 last_color = color
                 last_index = char_index
                 field_length = 1
+
+            # Check if last color was active to the end of screen
+            if last_color != ("black", "white"):
+                color_dict = {"color": last_color, "field_length": field_length}
+                if line_index not in color_map:
+                    color_map[line_index] = {}
+                color_map[line_index][last_index] = color_dict
 
     return color_map
 

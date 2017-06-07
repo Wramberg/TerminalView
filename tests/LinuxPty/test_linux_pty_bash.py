@@ -1,16 +1,13 @@
 """
-Unittests of the LinuxPty module when using bash as shell
+Unittests for the LinuxPty module when using bash as shell
 """
 import sys
 import os
 import unittest
 import time
 
-DIR_PATH = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-sys.path.append(DIR_PATH)
-
 # Module to test
-import LinuxPty
+from TerminalView import LinuxPty
 
 
 class BashTestBase(unittest.TestCase):
@@ -257,7 +254,3 @@ class BashResizeTest(BashTestBase):
             data = self._read_bytes_from_shell(512, timeout=0.5)
             lines = data.decode('ascii').split("\r\n")[1]
             self.assertEqual(int(lines), size[0])
-
-
-if __name__ == "__main__":
-    unittest.main()

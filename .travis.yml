@@ -11,7 +11,7 @@ matrix:
         - pip3 install pylint
       after_success:
         - flake8 --max-line-length 100 --ignore E402 *.py tests/*.py
-
+        # - pylint --disable=F0401,C0413,W0201 *.py tests/*.py
     - os: linux
       env: SETUP="linux, python 3.6"
       python: 3.6
