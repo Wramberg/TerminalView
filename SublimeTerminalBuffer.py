@@ -1,5 +1,7 @@
-import sys
-import os
+"""
+Wrapper module around a Sublime Text 3 view for showing a terminal look-a-like
+"""
+
 import collections
 import time
 

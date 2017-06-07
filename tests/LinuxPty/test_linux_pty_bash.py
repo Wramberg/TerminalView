@@ -1,7 +1,6 @@
 """
 Unittests for the LinuxPty module when using bash as shell
 """
-import sys
 import os
 import unittest
 import time

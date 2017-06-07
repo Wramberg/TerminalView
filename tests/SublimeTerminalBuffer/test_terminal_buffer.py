@@ -1,13 +1,7 @@
 """
 Unittests for the SublimeTerminalBuffer module
 """
-import sys
-import os
 import unittest
-import time
-
-# Import sublime stub
-import sublime
 
 # Module to test
 from TerminalView import SublimeTerminalBuffer
@@ -32,14 +26,14 @@ class pyte_buffer_to_color_map(unittest.TestCase):
         color_map = SublimeTerminalBuffer.convert_pyte_buffer_lines_to_colormap(pyte_buffer, lines)
 
         expected = {
-            2: { # Line 2
-                5: { # Char 5
+            2: {  # Line 2
+                5: {  # Char 5
                     'color': ('magenta', 'white'),
                     'field_length': 1
                 }
             },
-            3: { # Line 3
-                5: { # Char 5
+            3: {  # Line 3
+                5: {  # Char 5
                     'color': ('blue', 'white'),
                     'field_length': 1
                 }
@@ -59,7 +53,6 @@ class pyte_buffer_to_color_map(unittest.TestCase):
         }
 
         self.assertDictEqual(color_map, expected)
-
 
     def test_field_length1(self):
         buffer_factory = PyteBufferStubFactory(25, 20)
@@ -131,7 +124,6 @@ class pyte_buffer_to_color_map(unittest.TestCase):
         }
 
         self.assertDictEqual(color_map, expected)
-
 
     def test_field_length2(self):
         buffer_factory = PyteBufferStubFactory(4, 9)

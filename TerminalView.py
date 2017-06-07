@@ -1,6 +1,6 @@
 """
 Main module for the TerminalView plugin with commands for opening and
-Initializing a terminal view
+initializing a terminal view
 """
 
 import os
