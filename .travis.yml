@@ -25,7 +25,7 @@ before_script:
    - bash --version
 
 script:
-   - python3 tests/LinuxPtyBashUnittests.py -v
+   - python3 tests/run_tests.py
 
 after_success:
 
