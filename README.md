@@ -99,7 +99,6 @@ Development is performed ad-hoc and current plans include:
 
 * Copy/paste functionality through `ctrl`+`shift`+`c`/`v`
 * Scrolling functionality
-* Unittesting and CI setup
 * Support for more shells
 
 ## Acknowledgments
