@@ -14,14 +14,6 @@ matrix:
     - os: linux
       env: SETUP="linux, python 3.6"
       python: 3.6
-    - os: osx
-      env: SETUP="osx"
-      language: generic
-      before_install:
-        - brew update
-        - brew install python3
-        - virtualenv env -p python3
-        - source env/bin/activate
 
 install:
 
