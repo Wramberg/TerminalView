@@ -1,6 +1,6 @@
 {
   // Enable/disable colors in the terminal view
-  "terminal_view_show_colors": false,
+  "terminal_view_show_colors": true,
 
   // Enable/disable debug printing to the console
   "terminal_view_print_debug": false,
