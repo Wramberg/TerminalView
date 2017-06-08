@@ -1,6 +1,7 @@
 import sublime_api
 import sys
 
+
 class _LogWriter:
     def flush(self):
         pass
@@ -147,8 +148,8 @@ def decode_value(data):
     return val
 
 def load_settings(base_name):
-    settings_id = sublime_api.load_settings(base_name)
-    return Settings(settings_id)
+    # settings_id = sublime_api.load_settings(base_name)
+    return SettingsStub()
 
 def save_settings(base_name):
     sublime_api.save_settings(base_name)
@@ -940,3 +941,24 @@ class Settings(object):
 
     def clear_on_change(self, tag):
         sublime_api.settings_clear_on_change(self.settings_id, tag)
+
+
+# Make settings stub
+class SettingsStub():
+    def set(self, str, val):
+        pass
+
+    def get(self, name, default):
+        return default
+
+    def add_on_change(self, str, val):
+        pass
+
+# Make view stub from the sublime stub
+class SublimeViewStub(View):
+    def __init__(self, id):
+        self._settings = SettingsStub()
+        super().__init__(id)
+
+    def settings(self):
+        return self._settings

@@ -3,8 +3,17 @@ Unittests for the SublimeTerminalBuffer module
 """
 import unittest
 
+import sublime
+
 # Module to test
 from TerminalView import SublimeTerminalBuffer
+
+
+class general_terminal_buffer(unittest.TestCase):
+    def test_keypress_callback(self):
+        test_view = sublime.SublimeViewStub(1337)
+        buf = SublimeTerminalBuffer.SublimeTerminalBuffer(test_view, "test")
+
 
 
 class pyte_buffer_to_color_map(unittest.TestCase):
