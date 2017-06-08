@@ -164,7 +164,7 @@ def set_timeout_async(f, timeout_ms = 0):
     sublime_api.set_timeout_async(f, timeout_ms)
 
 def active_window():
-    return Window(sublime_api.active_window())
+    return SublimeWindowStub(1)
 
 def windows():
     return [Window(id) for id in sublime_api.windows()]
@@ -954,11 +954,41 @@ class SettingsStub():
     def add_on_change(self, str, val):
         pass
 
+
 # Make view stub from the sublime stub
 class SublimeViewStub(View):
     def __init__(self, id):
-        self._settings = SettingsStub()
         super().__init__(id)
+        self._settings = SettingsStub()
+        self._viewport_extent = (200, 100)
+        self._line_height = 20
+        self._em_width = 10
 
     def settings(self):
         return self._settings
+
+    def set_viewport_extent(self, val):
+        self._viewport_extent = val
+
+    def viewport_extent(self):
+        return self._viewport_extent
+
+    def set_line_height(self, val):
+        self._line_height = val
+
+    def line_height(self):
+        return self._line_height
+
+    def set_em_width(self, val):
+        self._em_width = val
+
+    def em_width(self):
+        return self._em_width
+
+
+class SublimeWindowStub(Window):
+    def __init__(self, id):
+        super().__init__(id)
+
+    def focus_view(self, view):
+        pass

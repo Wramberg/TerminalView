@@ -17,11 +17,11 @@ sys.path += [
 def main():
     loader = unittest.TestLoader()
     suite = loader.discover(HERE)
-
-    unittest.TextTestRunner(
-        verbosity=5
-    ).run(suite)
-
+    result = unittest.TextTestRunner(verbosity=5).run(suite)
+    if result.wasSuccessful():
+        sys.exit(0)
+    else:
+        sys.exit(1)
 
 if __name__ == '__main__':
     main()

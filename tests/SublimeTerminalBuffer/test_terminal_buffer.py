@@ -3,17 +3,65 @@ Unittests for the SublimeTerminalBuffer module
 """
 import unittest
 
+# Import sublime stub
 import sublime
 
 # Module to test
 from TerminalView import SublimeTerminalBuffer
 
 
-class general_terminal_buffer(unittest.TestCase):
+class line_updates(unittest.TestCase):
+    # todo
+    pass
+
+class terminal_buffer(unittest.TestCase):
+    def test_view_size(self):
+        # Set up test view
+        test_view = sublime.SublimeViewStub(3)
+        test_view.set_viewport_extent((300, 200))
+        test_view.set_line_height(10)
+        test_view.set_em_width(5)
+
+        # Make test buffer
+        buf = SublimeTerminalBuffer.SublimeTerminalBuffer(test_view, "sometitle")
+
+        rows, cols = buf.view_size()
+        self.assertEqual(rows, 20)
+        self.assertEqual(cols, 58)  # Note the module subtracts two to avoid the edge
+
     def test_keypress_callback(self):
+        # Set up test view
         test_view = sublime.SublimeViewStub(1337)
+
+        # Make test buffer
         buf = SublimeTerminalBuffer.SublimeTerminalBuffer(test_view, "test")
 
+        # Define test callback function
+        expected_key = None
+        expected_ctrl = False
+        expected_alt = False
+        def keypress_cb(key, ctrl=False, alt=False, shift=False, meta=False):
+            self.assertEqual(key, expected_key)
+            self.assertEqual(ctrl, expected_ctrl)
+            self.assertEqual(alt, expected_alt)
+
+        # Set callback
+        buf.set_keypress_callback(keypress_cb)
+
+        # Make the textcommand manually and execute it
+        keypress_cmd = SublimeTerminalBuffer.TerminalViewKeypress(test_view)
+        expected_key = "dummy_key"
+        keypress_cmd.run(None, key=expected_key)
+
+        # Now with modifiers
+        expected_key = "a"
+        expected_alt = True
+        keypress_cmd.run(None, key=expected_key, alt=expected_alt)
+
+        expected_key = "a"
+        expected_alt = False
+        expected_ctrl = True
+        keypress_cmd.run(None, key=expected_key, ctrl=expected_ctrl)
 
 
 class pyte_buffer_to_color_map(unittest.TestCase):
@@ -35,29 +83,17 @@ class pyte_buffer_to_color_map(unittest.TestCase):
         color_map = SublimeTerminalBuffer.convert_pyte_buffer_lines_to_colormap(pyte_buffer, lines)
 
         expected = {
-            2: {  # Line 2
-                5: {  # Char 5
-                    'color': ('magenta', 'white'),
-                    'field_length': 1
-                }
+            2: {
+                5: {'color': ('magenta', 'white'), 'field_length': 1}
             },
-            3: {  # Line 3
-                5: {  # Char 5
-                    'color': ('blue', 'white'),
-                    'field_length': 1
-                }
+            3: {
+                5: {'color': ('blue', 'white'), 'field_length': 1}
             },
             6: {
-                5: {
-                    'color': ('green', 'white'),
-                    'field_length': 1
-                }
+                5: {'color': ('green', 'white'), 'field_length': 1}
             },
             19: {
-                5: {
-                    'color': ('cyan', 'white'),
-                    'field_length': 1
-                }
+                5: {'color': ('cyan', 'white'), 'field_length': 1}
             }
         }
 
@@ -95,40 +131,19 @@ class pyte_buffer_to_color_map(unittest.TestCase):
 
         expected = {
             0: {
-                0: {
-                    'color': ('yellow', 'cyan'),
-                    'field_length': 3
-                },
-                3: {
-                    'color': ('red', 'cyan'),
-                    'field_length': 1
-                }
+                0: {'color': ('yellow', 'cyan'), 'field_length': 3},
+                3: {'color': ('red', 'cyan'), 'field_length': 1}
             },
             8: {
-                8: {
-                    'color': ('blue', 'yellow'),
-                    'field_length': 1
-                },
-                1: {
-                    'color': ('blue', 'yellow'),
-                    'field_length': 6
-                }
+                8: {'color': ('blue', 'yellow'), 'field_length': 1},
+                1: {'color': ('blue', 'yellow'), 'field_length': 6}
             },
             3: {
-                11: {
-                    'color': ('red', 'green'),
-                    'field_length': 3
-                }
+                11: {'color': ('red', 'green'), 'field_length': 3}
             },
             24: {
-                1: {
-                    'color': ('yellow', 'yellow'),
-                    'field_length': 1
-                },
-                17: {
-                    'color': ('yellow', 'yellow'),
-                    'field_length': 3
-                }
+                1: {'color': ('yellow', 'yellow'), 'field_length': 1},
+                17: {'color': ('yellow', 'yellow'), 'field_length': 3}
             }
         }
 
