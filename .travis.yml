@@ -4,8 +4,8 @@ sudo: false
 matrix:
   include:
     - os: linux
-      env: SETUP="linux, python 3.2, flake8"
-      python: 3.2
+      env: SETUP="linux, python 3.3, flake8"
+      python: 3.3
       before_install:
         - pip3 install flake8
         - pip3 install pylint
