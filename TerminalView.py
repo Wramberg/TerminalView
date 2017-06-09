@@ -132,7 +132,6 @@ class TerminalViewCore(sublime_plugin.TextCommand):
         Check if the terminal view was resized. If so update the screen size of
         the terminal and notify the shell.
         """
-
         (rows, cols) = self._terminal_buffer.view_size()
         row_diff = abs(self._terminal_rows - rows)
         col_diff = abs(self._terminal_columns - cols)

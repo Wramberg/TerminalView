@@ -17,7 +17,7 @@
             <key>caret</key>
             <string>#ffffff</string>
 
-        <!--     <key>lineHighlight</key>
+            <key>lineHighlight</key>
             <string>#ffde935f</string>
             <key>invisibles</key>
             <string>#ffffff</string>
@@ -27,7 +27,7 @@
             <key>selectionBorder</key>
             <string>#ffde935f</string>
             <key>inactiveSelection</key>
-            <string>#ffffff40</string> -->
+            <string>#ffffff40</string>
 
             <key>shadow</key>
             <string>#00000080</string>
