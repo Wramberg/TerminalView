@@ -9,10 +9,69 @@ import sublime
 # Module to test
 from TerminalView import SublimeTerminalBuffer
 
-
+# still some stuff todo with this testcase - lacks color tests and more edge
+# cases
 class line_updates(unittest.TestCase):
-    # todo
-    pass
+    def setUp(self):
+        self._test_view = sublime.SublimeViewStub(1)
+        self._test_view.terminal_view_color_regions = {}
+        self._test_view.terminal_view_buffer_contents = {}
+        self._test_view.terminal_view_buffer_update = {
+            "lines": [],
+            "display": [],
+            "color_map": [],
+        }
+        self._test_line_cmd = SublimeTerminalBuffer.TerminalViewUpdateLines(self._test_view)
+
+        # We assume the view is 5 lines and 11 chars wide
+        self._expected_buffer_contents = []
+        for i in range(5):
+            self._expected_buffer_contents.append("           \n")
+
+        # Update lines 0 to 5 with blanks as we should under normal operation
+        self._test_view.terminal_view_buffer_update["lines"] = list(range(5))
+        disp = ["           "] * 5
+        self._test_view.terminal_view_buffer_update["display"] = disp
+        self._test_line_cmd.run(None)
+
+        # Check that local copy of buffer is correct
+        buffer_cache = self._test_view.terminal_view_buffer_contents
+        for i in range(5):
+            self.assertEqual(buffer_cache[i], self._expected_buffer_contents[i])
+
+        # Check that replace calls are done correctly
+        replaces = self._test_view.get_replace_calls()
+        for i in range(5):
+            self.assertEqual(replaces[i].region.a, i * 12)
+            self.assertEqual(replaces[i].region.b, i * 12)
+            self.assertEqual(replaces[i].content, self._expected_buffer_contents[i])
+        self._test_view.clear_replace_calls()
+
+    def test_line_insert(self):
+        # Update lines 1 and 3 with new content
+        self._test_view.terminal_view_buffer_update["lines"] = [0, 2]
+        disp = ["           "] * 5
+        disp[0] = "test line 1"
+        self._expected_buffer_contents[0] = "test line 1\n"
+        disp[2] = "line 1     "
+        self._expected_buffer_contents[2] = "line 1     \n"
+        self._test_view.terminal_view_buffer_update["display"] = disp
+        self._test_line_cmd.run(None)
+
+        # Check that local copy of buffer is correct
+        buffer_cache = self._test_view.terminal_view_buffer_contents
+        for i in range(5):
+            self.assertEqual(buffer_cache[i], self._expected_buffer_contents[i])
+
+        # Check that replace calls are done correctly
+        replaces = self._test_view.get_replace_calls()
+        self.assertEqual(replaces[0].region.a, 0)
+        self.assertEqual(replaces[0].region.b, 12)
+        self.assertEqual(replaces[0].content, self._expected_buffer_contents[0])
+        self.assertEqual(replaces[1].region.a, 24)
+        self.assertEqual(replaces[1].region.b, 36)
+        self.assertEqual(replaces[1].content, self._expected_buffer_contents[2])
+        self._test_view.clear_replace_calls()
 
 class terminal_buffer(unittest.TestCase):
     def test_view_size(self):

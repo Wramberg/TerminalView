@@ -955,6 +955,12 @@ class SettingsStub():
         pass
 
 
+class ReplaceCall():
+    def __init__(self, region, content):
+        self.region = region
+        self.content = content
+
+
 # Make view stub from the sublime stub
 class SublimeViewStub(View):
     def __init__(self, id):
@@ -963,6 +969,7 @@ class SublimeViewStub(View):
         self._viewport_extent = (200, 100)
         self._line_height = 20
         self._em_width = 10
+        self._replace_calls = []
 
     def settings(self):
         return self._settings
@@ -985,6 +992,14 @@ class SublimeViewStub(View):
     def em_width(self):
         return self._em_width
 
+    def replace(self, edit, region, str):
+        self._replace_calls.append(ReplaceCall(region, str))
+
+    def get_replace_calls(self):
+        return self._replace_calls
+
+    def clear_replace_calls(self):
+        self._replace_calls = []
 
 class SublimeWindowStub(Window):
     def __init__(self, id):
