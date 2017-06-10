@@ -22,13 +22,16 @@ To run this plugin you need
 * bash (this is not required but recommended, see "Changing shell" below for details)
 
 ## Installation
-Run
+To install from https://packagecontrol.io/
+
+1. Open the command palette (`ctrl`+`shift`+`p` by default) and find "Package Control: Install Package"
+2. Search for TerminalView and hit `enter` to install.
+
+To install manually from github run
 
 ```
 git clone https://github.com/Wramberg/TerminalView.git $HOME/.config/sublime-text-3/Packages/TerminalView
 ```
-
-to install TerminalView.
 
 ## Usage
 Simply bring up your command pallete (`ctrl`+`shift`+`p` by default) and search for "Terminal View". This opens a terminal using 'bash -l' as shell. By default there is no keybinding for opening a terminal view but you can bind a key in your keymap to the *terminal_view_open* command:
