@@ -9,6 +9,7 @@ import sublime
 # Module to test
 from TerminalView import SublimeTerminalBuffer
 
+
 # still some stuff todo with this testcase - lacks color tests and more edge
 # cases
 class line_updates(unittest.TestCase):
@@ -73,6 +74,7 @@ class line_updates(unittest.TestCase):
         self.assertEqual(replaces[1].content, self._expected_buffer_contents[2])
         self._test_view.clear_replace_calls()
 
+
 class terminal_buffer(unittest.TestCase):
     def test_view_size(self):
         # Set up test view
@@ -99,6 +101,7 @@ class terminal_buffer(unittest.TestCase):
         expected_key = None
         expected_ctrl = False
         expected_alt = False
+
         def keypress_cb(key, ctrl=False, alt=False, shift=False, meta=False):
             self.assertEqual(key, expected_key)
             self.assertEqual(ctrl, expected_ctrl)
