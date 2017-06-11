@@ -63,9 +63,11 @@ class TerminalViewCore(sublime_plugin.TextCommand):
         """
         self._cmd = cmd
         self._cwd = cwd
+        self._console_logger = Utils.ConsoleLogger()
 
         # Initialize the sublime view
-        self._terminal_buffer = SublimeTerminalBuffer.SublimeTerminalBuffer(self.view, title)
+        self._terminal_buffer = SublimeTerminalBuffer.SublimeTerminalBuffer(self.view, title,
+                                                                            self._console_logger)
         self._terminal_buffer.set_keypress_callback(self.terminal_view_keypress_callback)
         self._terminal_buffer_is_open = True
         self._terminal_rows = 0
@@ -118,7 +120,7 @@ class TerminalViewCore(sublime_plugin.TextCommand):
         max_read_size = 4096
         data = self._shell.receive_output(max_read_size)
         if data is not None:
-            Utils.log_to_console("Got %u bytes of data from shell" % (len(data), ))
+            self._console_logger.log("Got %u bytes of data from shell" % (len(data), ))
             self._terminal_buffer.insert_data(data)
 
     def _refresh_terminal_view(self):
@@ -139,7 +141,7 @@ class TerminalViewCore(sublime_plugin.TextCommand):
         if row_diff or col_diff:
             log = "Changing screen size from (%i, %i) to (%i, %i)" % \
                   (self._terminal_rows, self._terminal_columns, rows, cols)
-            Utils.log_to_console(log)
+            self._console_logger.log(log)
 
             self._terminal_rows = rows
             self._terminal_columns = cols

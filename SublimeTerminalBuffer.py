@@ -13,7 +13,8 @@ from . import pyte
 
 
 class SublimeTerminalBuffer():
-    def __init__(self, sublime_view, title):
+    def __init__(self, sublime_view, title, console_logger):
+        self._console_logger = console_logger
         self._view = sublime_view
         self._view.set_name(title)
         self._view.set_scratch(True)
@@ -57,7 +58,10 @@ class SublimeTerminalBuffer():
         self._view.terminal_view_keypress_callback = callback
 
     def insert_data(self, data):
+        start = time.time()
         self._bytestream.feed(data)
+        t = time.time() - start
+        self._console_logger.log("Updated pyte screens in %.3f ms" % (t * 1000.))
 
     def update_view(self):
         nb_dirty_lines = len(self._screen.dirty)
@@ -84,7 +88,7 @@ class SublimeTerminalBuffer():
             self._view.run_command("terminal_view_update_lines")
 
             update_time = time.time() - start
-            Utils.log_to_console("Updated terminal view in %.3f ms" % (update_time * 1000.))
+            self._console_logger.log("Updated terminal view in %.3f ms" % (update_time * 1000.))
 
         self._update_cursor()
         self._screen.dirty.clear()
@@ -157,9 +161,6 @@ class TerminalViewKeypress(sublime_plugin.TextCommand):
             kwargs["ctrl"] = False
         if "shift" not in kwargs:
             kwargs["shift"] = False
-
-        out_str = "Keypress registered: " + str(kwargs)
-        Utils.log_to_console(out_str)
 
         if self.view.terminal_view_keypress_callback:
             cb = self.view.terminal_view_keypress_callback
