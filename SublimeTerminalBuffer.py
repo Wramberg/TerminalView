@@ -50,21 +50,21 @@ class SublimeTerminalBuffer():
         self._view.terminal_view_buffer_contents = {}
 
         # Use pyte as underlying terminal emulator
-        self._bytestream = pyte.ByteStream()
-        self._screen = pyte.DiffScreen(400, 150)
-        self._bytestream.attach(self._screen)
+        self._view.terminal_view_bytestream = pyte.ByteStream()
+        self._view.terminal_view_screen = pyte.HistoryScreen(400, 150, history=500)
+        self._view.terminal_view_bytestream.attach(self._view.terminal_view_screen)
 
     def set_keypress_callback(self, callback):
         self._view.terminal_view_keypress_callback = callback
 
     def insert_data(self, data):
         start = time.time()
-        self._bytestream.feed(data)
+        self._view.terminal_view_bytestream.feed(data)
         t = time.time() - start
-        self._console_logger.log("Updated pyte screens in %.3f ms" % (t * 1000.))
+        self._console_logger.log("Updated pyte screen in %.3f ms" % (t * 1000.))
 
     def update_view(self):
-        nb_dirty_lines = len(self._screen.dirty)
+        nb_dirty_lines = len(self._view.terminal_view_screen.dirty)
         if nb_dirty_lines > 0:
             # Time update time
             start = time.time()
@@ -72,16 +72,16 @@ class SublimeTerminalBuffer():
             # Convert the complex pyte buffer to a simple color map
             color_map = {}
             if self.show_colors:
-                color_map = convert_pyte_buffer_lines_to_colormap(self._screen.buffer,
-                                                                  self._screen.dirty)
+                color_map = convert_pyte_buffer_lines_to_colormap(self._view.terminal_view_screen.buffer,
+                                                                  self._view.terminal_view_screen.dirty)
 
             # Update the view - note that the update is saved on the view
             # instead of being sent as an argument since this is faster and also
             # allows for e.g. integer keys (and screen.dirty does not have to
             # converted to a list)
             update = {
-                "lines": self._screen.dirty,
-                "display": self._screen.display,
+                "lines": self._view.terminal_view_screen.dirty,
+                "display": self._view.terminal_view_screen.display,
                 "color_map": color_map
             }
             self._view.terminal_view_buffer_update = update
@@ -91,7 +91,7 @@ class SublimeTerminalBuffer():
             self._console_logger.log("Updated terminal view in %.3f ms" % (update_time * 1000.))
 
         self._update_cursor()
-        self._screen.dirty.clear()
+        self._view.terminal_view_screen.dirty.clear()
 
     def is_open(self):
         """
@@ -108,7 +108,7 @@ class SublimeTerminalBuffer():
             sublime.active_window().run_command("close_file")
 
     def update_terminal_size(self, nb_rows, nb_cols):
-        self._screen.resize(lines=nb_rows, columns=nb_cols)
+        self._view.terminal_view_screen.resize(lines=nb_rows, columns=nb_cols)
 
     def view_size(self):
         view = self._view
@@ -130,7 +130,7 @@ class SublimeTerminalBuffer():
         return (nb_rows, nb_columns)
 
     def _update_cursor(self):
-        cursor = self._screen.cursor
+        cursor = self._view.terminal_view_screen.cursor
         if cursor:
             update = {"cursor_x": cursor.x, "cursor_y": cursor.y}
             self._view.run_command("terminal_view_move_cursor", update)
@@ -141,6 +141,14 @@ class TerminalViewMoveCursor(sublime_plugin.TextCommand):
         tp = self.view.text_point(cursor_y, cursor_x)
         self.view.sel().clear()
         self.view.sel().add(sublime.Region(tp, tp))
+
+
+class TerminalScroll(sublime_plugin.TextCommand):
+    def run(self, edit, forward=False):
+        if not forward:
+            self.view.terminal_view_screen.prev_page()
+        else:
+            self.view.terminal_view_screen.next_page()
 
 
 class TerminalViewKeypress(sublime_plugin.TextCommand):
