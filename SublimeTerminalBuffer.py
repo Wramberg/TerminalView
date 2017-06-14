@@ -13,8 +13,7 @@ from . import pyte
 
 
 class SublimeTerminalBuffer():
-    def __init__(self, sublime_view, title, console_logger):
-        self._console_logger = console_logger
+    def __init__(self, sublime_view, title, logger):
         self._view = sublime_view
         self._view.set_name(title)
         self._view.set_scratch(True)
@@ -30,9 +29,16 @@ class SublimeTerminalBuffer():
         self._view.settings().set("caret_style", "blink")
         self._view.settings().add_on_change('color_scheme', lambda: set_color_scheme(self._view))
 
+        # Save logger on view
+        self._view.terminal_view_logger = logger
+
+        # Flags to request scrolling in view
+        self._view.terminal_view_scroll_up = False
+        self._view.terminal_view_scroll_down = False
+
         # Check if colors are enabled
         settings = sublime.load_settings('TerminalView.sublime-settings')
-        self.show_colors = settings.get("terminal_view_show_colors", True)
+        self._view.terminal_view_show_colors = settings.get("terminal_view_show_colors", False)
 
         # Mark in the views private settings that this is a terminal view so we
         # can use this as context in the keymap
@@ -61,42 +67,12 @@ class SublimeTerminalBuffer():
         start = time.time()
         self._view.terminal_view_bytestream.feed(data)
         t = time.time() - start
-        self._console_logger.log("Updated pyte screen in %.3f ms" % (t * 1000.))
+        self._view.terminal_view_logger.log("Updated pyte screen in %.3f ms" % (t * 1000.))
 
     def update_view(self):
-        nb_dirty_lines = len(self._view.terminal_view_screen.dirty)
-        if nb_dirty_lines > 0:
-            # Time update time
-            start = time.time()
-
-            # Convert the complex pyte buffer to a simple color map
-            color_map = {}
-            if self.show_colors:
-                color_map = convert_pyte_buffer_lines_to_colormap(self._view.terminal_view_screen.buffer,
-                                                                  self._view.terminal_view_screen.dirty)
-
-            # Update the view - note that the update is saved on the view
-            # instead of being sent as an argument since this is faster and also
-            # allows for e.g. integer keys (and screen.dirty does not have to
-            # converted to a list)
-            update = {
-                "lines": self._view.terminal_view_screen.dirty,
-                "display": self._view.terminal_view_screen.display,
-                "color_map": color_map
-            }
-            self._view.terminal_view_buffer_update = update
-            self._view.run_command("terminal_view_update_lines")
-
-            update_time = time.time() - start
-            self._console_logger.log("Updated terminal view in %.3f ms" % (update_time * 1000.))
-
-        self._update_cursor()
-        self._view.terminal_view_screen.dirty.clear()
+        self._view.run_command("terminal_view_update")
 
     def is_open(self):
-        """
-        Check if the terminal view is open.
-        """
         if self._view.window() is not None:
             return True
 
@@ -129,26 +105,15 @@ class SublimeTerminalBuffer():
 
         return (nb_rows, nb_columns)
 
-    def _update_cursor(self):
-        cursor = self._view.terminal_view_screen.cursor
-        if cursor:
-            update = {"cursor_x": cursor.x, "cursor_y": cursor.y}
-            self._view.run_command("terminal_view_move_cursor", update)
-
-
-class TerminalViewMoveCursor(sublime_plugin.TextCommand):
-    def run(self, _, cursor_x, cursor_y):
-        tp = self.view.text_point(cursor_y, cursor_x)
-        self.view.sel().clear()
-        self.view.sel().add(sublime.Region(tp, tp))
-
 
 class TerminalScroll(sublime_plugin.TextCommand):
-    def run(self, edit, forward=False):
+    def run(self, _, forward=False):
+        # Mark on view to request a scroll in the thread that handles the
+        # updates
         if not forward:
-            self.view.terminal_view_screen.prev_page()
+            self.view.terminal_view_scroll_up = True
         else:
-            self.view.terminal_view_screen.next_page()
+            self.view.terminal_view_scroll_down = True
 
 
 class TerminalViewKeypress(sublime_plugin.TextCommand):
@@ -175,14 +140,51 @@ class TerminalViewKeypress(sublime_plugin.TextCommand):
             cb(kwargs["key"], kwargs["ctrl"], kwargs["alt"], kwargs["shift"], kwargs["meta"])
 
 
-class TerminalViewUpdateLines(sublime_plugin.TextCommand):
+class TerminalViewUpdate(sublime_plugin.TextCommand):
     def run(self, edit):
-        # Grab the update data from the view which is not parsed as argument
-        # due to reasons described at the calling place.
-        lines = self.view.terminal_view_buffer_update["lines"]
-        display = self.view.terminal_view_buffer_update["display"]
-        color_map = self.view.terminal_view_buffer_update["color_map"]
+        # Check if scroll was requested
+        if self.view.terminal_view_scroll_up:
+            self.view.terminal_view_screen.prev_page()
+            self.view.terminal_view_scroll_up = False
 
+        if self.view.terminal_view_scroll_down:
+            self.view.terminal_view_screen.next_page()
+            self.view.terminal_view_scroll_down = False
+
+        self._update_cursor()
+
+        # Update dirty lines in buffer
+        nb_dirty_lines = len(self.view.terminal_view_screen.dirty)
+        if nb_dirty_lines > 0:
+            # Time update time
+            start = time.time()
+
+            # Convert the complex pyte buffer to a simple color map
+            if self.view.terminal_view_show_colors:
+                color_map = convert_pyte_buffer_to_colormap(self.view.terminal_view_screen.buffer,
+                                                            self.view.terminal_view_screen.dirty)
+            else:
+                color_map = {}
+
+            # Update the view
+            lines = self.view.terminal_view_screen.dirty
+            display = self.view.terminal_view_screen.display
+            self._update_lines(edit, lines, display, color_map)
+
+            update_time = time.time() - start
+            log = "Updated terminal view in %.3f ms" % (update_time * 1000.)
+            self.view.terminal_view_logger.log(log)
+
+        self.view.terminal_view_screen.dirty.clear()
+
+    def _update_cursor(self):
+        cursor = self.view.terminal_view_screen.cursor
+        if cursor:
+            tp = self.view.text_point(cursor.y, cursor.x)
+            self.view.sel().clear()
+            self.view.sel().add(sublime.Region(tp, tp))
+
+    def _update_lines(self, edit, lines, display, color_map):
         self.view.set_read_only(False)
         for line_no in sorted(lines):
             # We may get line numbers outside the current display if it was
@@ -277,7 +279,7 @@ class TerminalViewUpdateLines(sublime_plugin.TextCommand):
         return (start_point, end_point)
 
 
-def convert_pyte_buffer_lines_to_colormap(buffer, lines):
+def convert_pyte_buffer_to_colormap(buffer, lines):
     color_map = {}
     for line_index in lines:
         # There may be lines outside the buffer after terminal was resized.
@@ -306,8 +308,9 @@ def convert_pyte_buffer_lines_to_colormap(buffer, lines):
         last_index = 0
         field_length = 0
 
-        # for char_index, char in enumerate(line):
-        for char_index, char in enumerate(line):
+        for char_index in line.keys():
+            char = line[char_index]
+
             # Default bg is black
             if char.bg is "default":
                 bg = "black"
