@@ -29,6 +29,9 @@ class SublimeTerminalBuffer():
         self._view.settings().set("caret_style", "blink")
         self._view.settings().add_on_change('color_scheme', lambda: set_color_scheme(self._view))
 
+        # Get terminal view settings
+        settings = sublime.load_settings('TerminalView.sublime-settings')
+
         # Save logger on view
         self._view.terminal_view_logger = logger
 
@@ -37,7 +40,6 @@ class SublimeTerminalBuffer():
         self._view.terminal_view_scroll_down = False
 
         # Check if colors are enabled
-        settings = sublime.load_settings('TerminalView.sublime-settings')
         self._view.terminal_view_show_colors = settings.get("terminal_view_show_colors", False)
 
         # Mark in the views private settings that this is a terminal view so we
@@ -56,8 +58,10 @@ class SublimeTerminalBuffer():
         self._view.terminal_view_buffer_contents = {}
 
         # Use pyte as underlying terminal emulator
+        scrollback = settings.get("terminal_view_scrollback", 5000)
+
         self._view.terminal_view_bytestream = pyte.ByteStream()
-        self._view.terminal_view_screen = pyte.HistoryScreen(400, 150, history=500)
+        self._view.terminal_view_screen = pyte.HistoryScreen(400, 150, history=scrollback)
         self._view.terminal_view_bytestream.attach(self._view.terminal_view_screen)
 
     def set_keypress_callback(self, callback):
