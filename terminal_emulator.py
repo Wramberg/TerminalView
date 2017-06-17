@@ -28,7 +28,6 @@ class HistoryScreenExtended(pyte.HistoryScreen):
 
             self.dirty = set(range(self.lines))
 
-
     def next_line(self):
         if self.history.position < self.history.size and self.history.bottom:
             mid = min(len(self.history.bottom), 1)

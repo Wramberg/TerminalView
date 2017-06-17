@@ -6,7 +6,7 @@ import unittest
 import time
 
 # Module to test
-from TerminalView import LinuxPty
+from TerminalView import linux_pty
 
 
 class BashTestBase(unittest.TestCase):
@@ -18,7 +18,7 @@ class BashTestBase(unittest.TestCase):
         Start bash shell
         """
         cwd = os.path.dirname(os.path.abspath(__file__))
-        self.linux_pty_bash = LinuxPty.LinuxPty("bash", cwd)
+        self.linux_pty_bash = linux_pty.LinuxPty("bash", cwd)
         self.assertTrue(self.linux_pty_bash.is_running())
 
         # Update screen size to avoid wrapping during test

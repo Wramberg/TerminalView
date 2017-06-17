@@ -7,7 +7,6 @@ import time
 import sublime
 import sublime_plugin
 
-from . import utils
 from . import terminal_emulator
 
 

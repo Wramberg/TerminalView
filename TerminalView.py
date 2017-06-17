@@ -67,7 +67,7 @@ class TerminalViewCore(sublime_plugin.TextCommand):
 
         # Initialize the sublime view
         self._terminal_buffer = sublime_terminal_buffer.SublimeTerminalBuffer(self.view, title,
-                                                                            self._console_logger)
+                                                                              self._console_logger)
         self._terminal_buffer.set_keypress_callback(self.terminal_view_keypress_callback)
         self._terminal_buffer_is_open = True
         self._terminal_rows = 0
