@@ -25,6 +25,7 @@ class PyteTerminalEmulator():
 
     def resize(self, lines, cols):
         self._screen.scroll_to_bottom()
+        self._screen.reset_history()
         self._screen.dirty.update(range(lines))
         return self._screen.resize(lines, cols)
 
@@ -106,7 +107,7 @@ class CustomHistoryScreen(pyte.Screen):
             modes.DECTCEM in self.mode
         )
 
-    def _reset_history(self):
+    def reset_history(self):
         self.history.top.clear()
         self.history.bottom.clear()
         self.history = self.history._replace(position=self.history.size)
@@ -118,7 +119,7 @@ class CustomHistoryScreen(pyte.Screen):
         emptied.
         """
         super(CustomHistoryScreen, self).reset()
-        self._reset_history()
+        self.reset_history()
 
     def erase_in_display(self, how=0):
         """
@@ -127,7 +128,7 @@ class CustomHistoryScreen(pyte.Screen):
         super(CustomHistoryScreen, self).erase_in_display(how)
 
         if how == 3:
-            self._reset_history()
+            self.reset_history()
 
     def index(self):
         """
