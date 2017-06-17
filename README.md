@@ -106,10 +106,14 @@ The color scheme can be tweaked by copying the default color scheme into the use
 Development is performed ad-hoc and current plans include:
 
 * Copy/paste functionality through `ctrl`+`shift`+`c`/`v`
-* Scrolling functionality
+* Functionality for dynamic amount of scrolling
+* 256 color support
 * Support for more shells
+* Experimentation with Windows support (through WSL)
 
 ## Acknowledgments
+The pyte terminal emulator (https://github.com/selectel/pyte) is an integral part of this plugin and deserves some credit for making this plugin possible.
+
 During development the SublimePTY plugin (https://github.com/wuub/SublimePTY) was a good source of inspiration for some of the problems that occurred. You can probably find a few bits and pieces from it in this plugin.
 
 For testing stubs and general test structure the Javatar plugin (https://github.com/spywhere/Javatar) was a good point of origin.

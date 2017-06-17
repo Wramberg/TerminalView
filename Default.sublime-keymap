@@ -6,8 +6,6 @@
     {"keys": ["ctrl+shift+w"], "command": "close", "context": [{"key": "setting.terminal_view"}]},
     {"keys": ["shift+pageup"], "command": "terminal_scroll", "args": {"forward": false}, "context": [{"key": "setting.terminal_view"}]},
     {"keys": ["shift+pagedown"], "command": "terminal_scroll", "args": {"forward": true}, "context": [{"key": "setting.terminal_view"}]},
-    {"keys": ["shift+up"], "command": "terminal_scroll", "args": {"forward": false, "line": true}, "context": [{"key": "setting.terminal_view"}]},
-    {"keys": ["shift+down"], "command": "terminal_scroll", "args": {"forward": true, "line": true}, "context": [{"key": "setting.terminal_view"}]},
 
     // Basic keys
     {"keys": ["up"], "command": "terminal_view_keypress", "args": {"key": "up"}, "context": [{"key": "setting.terminal_view"}]},

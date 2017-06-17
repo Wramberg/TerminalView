@@ -1,16 +1,17 @@
 {
-  // Enable/disable dynamic colors in the terminal view. This causes a minor
-  // increase in terminal response time, hence its disabled by default. Unless
-  // you are using a 20 year old PC it should be fine to enable though.
+  // Show dynamic colors (colors set by the shell) in the terminal view. This
+  // causes a minor increase in terminal response time, hence its disabled by
+  // default. Unless you are using a 20 year old PC it should be fine to enable
+  // though.
   "terminal_view_show_colors": false,
 
   // Number of lines to buffer in history for scrollback
-  "terminal_view_scroll_history": 2000,
+  "terminal_view_scroll_history": 1000,
 
   // Percentage of page that is scrolled when hitting the keybinding (1.0
   // corresponds to an entire page scroll)
   "terminal_view_scroll_ratio": 0.5,
 
   // Enable/disable debug printing to the console
-  "terminal_view_print_debug": true,
+  "terminal_view_print_debug": false,
 }

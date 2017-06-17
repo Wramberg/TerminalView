@@ -58,10 +58,10 @@ class SublimeTerminalBuffer():
         self._view.terminal_view_buffer_contents = {}
 
         # Use pyte as underlying terminal emulator
-        hist = settings.get("terminal_view_scroll_history", 2000)
+        hist = settings.get("terminal_view_scroll_history", 1000)
         ratio = settings.get("terminal_view_scroll_ratio", 0.5)
         self._view.terminal_view_emulator = \
-            terminal_emulator.PyteTerminalEmulator(10, 10, hist, ratio)
+            terminal_emulator.PyteTerminalEmulator(80, 24, hist, ratio)
 
     def set_keypress_callback(self, callback):
         self._view.terminal_view_keypress_callback = callback
@@ -112,7 +112,7 @@ class SublimeTerminalBuffer():
 class TerminalScroll(sublime_plugin.TextCommand):
     def run(self, _, forward=False, line=False):
         # Mark on view to request a scroll in the thread that handles the
-        # updates
+        # updates. Note lines are supported at the moment.
         if line:
             self.view.terminal_view_scroll = ("line", )
         else:

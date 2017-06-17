@@ -1,47 +1,11 @@
 """
 Wrapper module for the Pyte terminal emulator
 """
+from collections import deque, namedtuple
+import math
+
 from . import pyte
-
-
-class HistoryScreenExtended(pyte.HistoryScreen):
-    """
-    Custom pyte history screen with ability to scroll a single line
-    """
-    def __init__(self, cols, lines, history, ratio):
-        super().__init__(cols, lines, history=history, ratio=ratio)
-
-    def prev_line(self):
-        if self.history.position > self.lines and self.history.top:
-            mid = min(len(self.history.top), 1)
-
-            self.history.bottom.extendleft(
-                self.buffer[y]
-                for y in range(self.lines - 1, self.lines - mid - 1, -1))
-            self.history = self.history \
-                ._replace(position=self.history.position - self.lines)
-
-            for y in range(self.lines - 1, mid - 1, -1):
-                self.buffer[y] = self.buffer[y - mid]
-            for y in range(mid - 1, -1, -1):
-                self.buffer[y] = self.history.top.pop()
-
-            self.dirty = set(range(self.lines))
-
-    def next_line(self):
-        if self.history.position < self.history.size and self.history.bottom:
-            mid = min(len(self.history.bottom), 1)
-
-            self.history.top.extend(self.buffer[y] for y in range(mid))
-            self.history = self.history \
-                ._replace(position=self.history.position + self.lines)
-
-            for y in range(self.lines - mid):
-                self.buffer[y] = self.buffer[y + mid]
-            for y in range(self.lines - mid, self.lines):
-                self.buffer[y] = self.history.bottom.popleft()
-
-            self.dirty = set(range(self.lines))
+from .pyte import modes
 
 
 class PyteTerminalEmulator():
@@ -49,28 +13,28 @@ class PyteTerminalEmulator():
     Adapter for the pyte terminal emulator
     """
     def __init__(self, cols, lines, history, ratio):
-        self._screen = HistoryScreenExtended(cols, lines, history, ratio)
+        # Double history size due to pyte splitting it between two queues
+        # resulting in only having half the scrollback as expected
+        self._screen = CustomHistoryScreen(cols, lines, history * 2, ratio)
         self._bytestream = pyte.ByteStream()
         self._bytestream.attach(self._screen)
 
     def feed(self, data):
-        return self._bytestream.feed(data)
+        self._screen.scroll_to_bottom()
+        self._bytestream.feed(data)
 
     def resize(self, lines, cols):
+        self._screen.scroll_to_bottom()
         self._screen.dirty.update(range(lines))
         return self._screen.resize(lines, cols)
 
-    def prev_line(self):
-        return self._screen.prev_line()
-
-    def next_line(self):
-        return self._screen.next_line()
-
     def prev_page(self):
-        return self._screen.prev_page()
+        self._screen.prev_page()
+        self._screen.ensure_screen_width()
 
     def next_page(self):
-        return self._screen.next_page()
+        self._screen.next_page()
+        self._screen.ensure_screen_width()
 
     def dirty_lines(self):
         dirty_lines = {}
@@ -98,6 +62,133 @@ class PyteTerminalEmulator():
 
     def color_map(self, lines):
         return convert_pyte_buffer_to_colormap(self._screen.buffer, lines)
+
+
+History = namedtuple("History", "top bottom ratio size position")
+
+
+class CustomHistoryScreen(pyte.Screen):
+    """
+    Custom history screen customized for this plugin. Basically a copy of the
+    standard pyte history screen but with some optimizations.
+    """
+    def __init__(self, columns, lines, history, ratio):
+        self.history = History(deque(maxlen=history // 2),
+                               deque(maxlen=history),
+                               float(ratio),
+                               history,
+                               history)
+
+        super(CustomHistoryScreen, self).__init__(columns, lines)
+
+    def scroll_to_bottom(self):
+        """
+        Ensure a screen is at the bottom of the history buffer
+        """
+        while self.history.position < self.history.size:
+            self.next_page()
+
+    def ensure_screen_width(self):
+        """
+        Ensure all lines on a screen have proper width columns. Extra characters
+        are truncated, missing characters are filled with whitespace.
+        """
+        for line in self.buffer.values():
+            for x in line:
+                if x > self.columns:
+                    line.pop(x)
+
+        # If we're at the bottom of the history buffer and `DECTCEM`
+        # mode is set -- show the cursor.
+        self.cursor.hidden = not (
+            abs(self.history.position - self.history.size) < self.lines and
+            modes.DECTCEM in self.mode
+        )
+
+    def _reset_history(self):
+        self.history.top.clear()
+        self.history.bottom.clear()
+        self.history = self.history._replace(position=self.history.size)
+
+    def reset(self):
+        """
+        Overloaded to reset screen history state: history position
+        is reset to bottom of both queues;  queues themselves are
+        emptied.
+        """
+        super(CustomHistoryScreen, self).reset()
+        self._reset_history()
+
+    def erase_in_display(self, how=0):
+        """
+        Overloaded to reset history state
+        """
+        super(CustomHistoryScreen, self).erase_in_display(how)
+
+        if how == 3:
+            self._reset_history()
+
+    def index(self):
+        """
+        Overloaded to update top history with the removed lines
+        """
+        top, bottom = self.margins or Margins(0, self.lines - 1)
+
+        if self.cursor.y == bottom:
+            self.history.top.append(self.buffer[top])
+
+        super(CustomHistoryScreen, self).index()
+
+    def reverse_index(self):
+        """
+        Overloaded to update bottom history with the removed lines
+        """
+        top, bottom = self.margins or Margins(0, self.lines - 1)
+
+        if self.cursor.y == top:
+            self.history.bottom.append(self.buffer[bottom])
+
+        super(CustomHistoryScreen, self).reverse_index()
+
+    def prev_page(self):
+        """
+        Move the screen page up through the history buffer
+        """
+        if self.history.position > self.lines and self.history.top:
+            mid = min(len(self.history.top),
+                      int(math.ceil(self.lines * self.history.ratio)))
+
+            self.history.bottom.extendleft(
+                self.buffer[y]
+                for y in range(self.lines - 1, self.lines - mid - 1, -1))
+            self.history = self.history \
+                ._replace(position=self.history.position - self.lines)
+
+            for y in range(self.lines - 1, mid - 1, -1):
+                self.buffer[y] = self.buffer[y - mid]
+            for y in range(mid - 1, -1, -1):
+                self.buffer[y] = self.history.top.pop()
+
+            self.dirty = set(range(self.lines))
+
+    def next_page(self):
+        """
+        Move the screen page down through the history buffer
+        """
+        if self.history.position < self.history.size and self.history.bottom:
+            mid = min(len(self.history.bottom),
+                      int(math.ceil(self.lines * self.history.ratio)))
+
+            self.history.top.extend(self.buffer[y] for y in range(mid))
+            self.history = self.history \
+                ._replace(position=self.history.position + self.lines)
+
+            for y in range(self.lines - mid):
+                self.buffer[y] = self.buffer[y + mid]
+            for y in range(self.lines - mid, self.lines):
+                self.buffer[y] = self.history.bottom.popleft()
+
+            self.dirty = set(range(self.lines))
 
 
 def convert_pyte_buffer_to_colormap(buffer, lines):
