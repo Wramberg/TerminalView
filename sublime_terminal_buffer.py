@@ -202,7 +202,6 @@ class TerminalViewUpdate(sublime_plugin.TextCommand):
     def _update_lines(self, edit, dirty_lines, color_map):
         self.view.set_read_only(False)
         lines = dirty_lines.keys()
-        print(lines)
         for line_no in sorted(lines):
             # Clear any colors on the line
             self._remove_color_regions_on_line(line_no)
