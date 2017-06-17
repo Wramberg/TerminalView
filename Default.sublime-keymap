@@ -4,9 +4,11 @@
     {"keys": ["ctrl+shift+n"], "command": "new_file", "context": [{"key": "setting.terminal_view"}]},
     {"keys": ["ctrl+shift+q"], "command": "close", "context": [{"key": "setting.terminal_view"}]},
     {"keys": ["ctrl+shift+w"], "command": "close", "context": [{"key": "setting.terminal_view"}]},
+    {"keys": ["shift+pageup"], "command": "terminal_view_scroll", "args": {"forward": false}, "context": [{"key": "setting.terminal_view"}]},
+    {"keys": ["shift+pagedown"], "command": "terminal_view_scroll", "args": {"forward": true}, "context": [{"key": "setting.terminal_view"}]},
 
     // Basic keys
-    {"keys": ["up"], "command": "terminal_view_keypress","args": {"key": "up"}, "context": [{"key": "setting.terminal_view"}]},
+    {"keys": ["up"], "command": "terminal_view_keypress", "args": {"key": "up"}, "context": [{"key": "setting.terminal_view"}]},
     {"keys": ["down"], "command": "terminal_view_keypress", "args": {"key": "down"}, "context": [{"key": "setting.terminal_view"}]},
     {"keys": ["right"], "command": "terminal_view_keypress", "args": {"key": "right"}, "context": [{"key": "setting.terminal_view"}]},
     {"keys": ["left"], "command": "terminal_view_keypress", "args": {"key": "left"}, "context": [{"key": "setting.terminal_view"}]},

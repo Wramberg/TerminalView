@@ -10,9 +10,9 @@ import time
 import sublime
 import sublime_plugin
 
-from . import SublimeTerminalBuffer
-from . import LinuxPty
-from . import Utils
+from . import sublime_terminal_buffer
+from . import linux_pty
+from . import utils
 
 
 class TerminalViewOpen(sublime_plugin.WindowCommand):
@@ -63,18 +63,18 @@ class TerminalViewCore(sublime_plugin.TextCommand):
         """
         self._cmd = cmd
         self._cwd = cwd
-        self._console_logger = Utils.ConsoleLogger()
+        self._console_logger = utils.ConsoleLogger()
 
         # Initialize the sublime view
-        self._terminal_buffer = SublimeTerminalBuffer.SublimeTerminalBuffer(self.view, title,
-                                                                            self._console_logger)
+        self._terminal_buffer = sublime_terminal_buffer.SublimeTerminalBuffer(self.view, title,
+                                                                              self._console_logger)
         self._terminal_buffer.set_keypress_callback(self.terminal_view_keypress_callback)
         self._terminal_buffer_is_open = True
         self._terminal_rows = 0
         self._terminal_columns = 0
 
         # Start the underlying shell
-        self._shell = LinuxPty.LinuxPty(self._cmd.split(), self._cwd)
+        self._shell = linux_pty.LinuxPty(self._cmd.split(), self._cwd)
         self._shell_is_running = True
 
         # Start the main loop
