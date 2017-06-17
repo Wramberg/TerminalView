@@ -65,6 +65,7 @@ class PyteTerminalEmulator():
 
 
 History = namedtuple("History", "top bottom ratio size position")
+Margins = namedtuple("Margins", "top bottom")
 
 
 class CustomHistoryScreen(pyte.Screen):
