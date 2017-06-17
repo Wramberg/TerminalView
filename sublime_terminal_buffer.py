@@ -109,7 +109,7 @@ class SublimeTerminalBuffer():
         return (nb_rows, nb_columns)
 
 
-class TerminalScroll(sublime_plugin.TextCommand):
+class TerminalViewScroll(sublime_plugin.TextCommand):
     def run(self, _, forward=False, line=False):
         # Mark on view to request a scroll in the thread that handles the
         # updates. Note lines are supported at the moment.
