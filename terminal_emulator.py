@@ -58,6 +58,7 @@ class PyteTerminalEmulator():
         return self._bytestream.feed(data)
 
     def resize(self, lines, cols):
+        self._screen.dirty.update(range(lines))
         return self._screen.resize(lines, cols)
 
     def prev_line(self):
