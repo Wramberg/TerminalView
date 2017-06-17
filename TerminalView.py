@@ -12,7 +12,7 @@ import sublime_plugin
 
 from . import SublimeTerminalBuffer
 from . import LinuxPty
-from . import Utils
+from . import utils
 
 
 class TerminalViewOpen(sublime_plugin.WindowCommand):
@@ -63,7 +63,7 @@ class TerminalViewCore(sublime_plugin.TextCommand):
         """
         self._cmd = cmd
         self._cwd = cwd
-        self._console_logger = Utils.ConsoleLogger()
+        self._console_logger = utils.ConsoleLogger()
 
         # Initialize the sublime view
         self._terminal_buffer = SublimeTerminalBuffer.SublimeTerminalBuffer(self.view, title,

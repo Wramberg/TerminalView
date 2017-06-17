@@ -1,14 +1,13 @@
 """
 Wrapper module around a Sublime Text 3 view for showing a terminal look-a-like
 """
-
 import collections
 import time
 
 import sublime
 import sublime_plugin
 
-from . import Utils
+from . import utils
 from . import terminal_emulator
 
 
@@ -36,7 +35,7 @@ class SublimeTerminalBuffer():
         # Save logger on view
         self._view.terminal_view_logger = logger
 
-        # Flags to request scrolling in view (from one thread to another)
+        # Flag to request scrolling in view (from one thread to another)
         self._view.terminal_view_scroll = None
 
         # Check if colors are enabled
@@ -62,7 +61,8 @@ class SublimeTerminalBuffer():
         # Use pyte as underlying terminal emulator
         hist = settings.get("terminal_view_scroll_history", 2000)
         ratio = settings.get("terminal_view_scroll_ratio", 0.5)
-        self._view.terminal_view_emulator = terminal_emulator.PyteTerminalEmulator(10, 10, hist, ratio)
+        self._view.terminal_view_emulator = \
+            terminal_emulator.PyteTerminalEmulator(10, 10, hist, ratio)
 
     def set_keypress_callback(self, callback):
         self._view.terminal_view_keypress_callback = callback
@@ -123,7 +123,6 @@ class TerminalScroll(sublime_plugin.TextCommand):
             self.view.terminal_view_scroll = self.view.terminal_view_scroll + ("up", )
         else:
             self.view.terminal_view_scroll = self.view.terminal_view_scroll + ("down", )
-        print(self.view.terminal_view_scroll)
 
 
 class TerminalViewKeypress(sublime_plugin.TextCommand):
@@ -203,14 +202,8 @@ class TerminalViewUpdate(sublime_plugin.TextCommand):
     def _update_lines(self, edit, dirty_lines, color_map):
         self.view.set_read_only(False)
         lines = dirty_lines.keys()
+        print(lines)
         for line_no in sorted(lines):
-            ## TODO DO NOT IGNORE IF LINENO OVER LEN DISPLAY BUT REPLACE LINES WITH BLANK LINES
-
-            # We may get line numbers outside the current display if it was
-            # resized to be smaller
-            # if line_no > len(display) - 1:
-                # break
-
             # Clear any colors on the line
             self._remove_color_regions_on_line(line_no)
 
@@ -244,12 +237,17 @@ class TerminalViewUpdate(sublime_plugin.TextCommand):
         # Make region spanning entire line (including any newline at the end)
         line_region = sublime.Region(line_start, line_end)
 
-        # Replace content on the line with new content
-        content_w_newline = content + "\n"
-        self.view.replace(edit, line_region, content_w_newline)
+        if content is None:
+            self.view.erase(edit, line_region)
+            if line_no in self.view.terminal_view_buffer_contents:
+                del self.view.terminal_view_buffer_contents[line_no]
+        else:
+            # Replace content on the line with new content
+            content_w_newline = content + "\n"
+            self.view.replace(edit, line_region, content_w_newline)
 
-        # Update our local copy of the ST3 view buffer
-        self.view.terminal_view_buffer_contents[line_no] = content_w_newline
+            # Update our local copy of the ST3 view buffer
+            self.view.terminal_view_buffer_contents[line_no] = content_w_newline
 
     def _update_line_colors(self, line_no, line_color_map):
         # Note this function has been optimized quite a bit. Calls to the ST3

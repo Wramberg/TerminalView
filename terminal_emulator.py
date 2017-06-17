@@ -80,7 +80,7 @@ class PyteTerminalEmulator():
             for line in self._screen.dirty:
                 if line >= len(display):
                     # This happens when screen is resized smaller
-                    dirty_lines[line] = ""
+                    dirty_lines[line] = None
                 else:
                     dirty_lines[line] = display[line]
 
