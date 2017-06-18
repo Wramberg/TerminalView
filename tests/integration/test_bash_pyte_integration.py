@@ -121,8 +121,9 @@ class NanoSuspendResumeTest(unittest.TestCase):
 
         # Check display matches expected
         disp = self.term_emulator.display()
-        for i in range(len(disp)):
-            self.assertEqual(disp[i], self.expected_display[i], msg=disp)
+        msg = {"expected": self.expected_display, "actual": disp}
+        for i in range(1, len(disp)):
+            self.assertEqual(disp[i], self.expected_display[i], msg=msg)
 
     def _read_bytes_from_shell(self, num_bytes, timeout=1):
         """

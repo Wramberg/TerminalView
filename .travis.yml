@@ -6,9 +6,6 @@ matrix:
     - os: linux
       env: SETUP="linux, python 3.3, flake8"
       python: 3.3
-      before_install:
-        - sudo pip3 install flake8
-        - sudo pip3 install pylint
       after_success:
         - flake8 --max-line-length 100 --ignore E402 --exclude pyte,stubs
     - os: linux
@@ -17,6 +14,9 @@ matrix:
 
 install:
    - sudo apt-get install -y nano
+   - sudo apt-get install -y python3-pip
+   - sudo pip3 install flake8
+   - sudo pip3 install pylint
 
 before_script:
    - uname -a
