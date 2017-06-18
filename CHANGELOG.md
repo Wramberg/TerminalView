@@ -4,7 +4,7 @@
 Feature release including
 
 * Support for scrolling
-* Internal pyte module update to newest version
+* Pyte update to 0.5.2
 * Fix for #12
 * Various optimizations
 

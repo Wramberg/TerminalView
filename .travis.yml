@@ -16,6 +16,7 @@ matrix:
       python: 3.6
 
 install:
+   - apt-get install nano
 
 before_script:
    - uname -a
