@@ -122,8 +122,10 @@ class NanoSuspendResumeTest(unittest.TestCase):
         # Check display matches expected
         disp = self.term_emulator.display()
         msg = {"expected": self.expected_display, "actual": disp}
-        for i in range(1, len(disp)):
-            self.assertEqual(disp[i], self.expected_display[i], msg=msg)
+        for i in range(len(disp)):
+            # The new file line might be removed with resuming nano
+            if "New File" not in self.expected_display[i]:
+                self.assertEqual(disp[i], self.expected_display[i], msg=msg)
 
     def _read_bytes_from_shell(self, num_bytes, timeout=1):
         """

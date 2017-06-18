@@ -6,17 +6,21 @@ matrix:
     - os: linux
       env: SETUP="linux, python 3.3, flake8"
       python: 3.3
-      after_success:
-        - flake8 --max-line-length 100 --ignore E402 --exclude pyte,stubs
+#      after_success:
+#        - flake8 --max-line-length 100 --ignore E402 --exclude pyte,stubs
     - os: linux
       env: SETUP="linux, python 3.6"
       python: 3.6
 
+before_install:
+   - sudo apt-get update
+
 install:
    - sudo apt-get install -y nano
-   - sudo apt-get install -y python3-pip
-   - sudo pip3 install flake8
-   - sudo pip3 install pylint
+#   - sudo apt-get install -y python3-setuptools
+#   - sudo easy_install3 pip
+#   - sudo pip3 install flake8
+#   - sudo pip3 install pylint
 
 before_script:
    - uname -a
