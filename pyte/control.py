@@ -7,65 +7,59 @@
     :class:`~pyte.streams.Stream`, the set of codes here is for
     ``TERM=linux`` which is a superset of VT102.
 
-    :copyright: (c) 2011-2012 by Selectel.
-    :copyright: (c) 2012-2017 by pyte authors and contributors,
-                    see AUTHORS for details.
+    :copyright: (c) 2011-2013 by Selectel, see AUTHORS for details.
     :license: LGPL, see LICENSE for more details.
 """
+
 from __future__ import unicode_literals
+
 
 #: *Space*: Not suprisingly -- ``" "``.
 SP = " "
 
 #: *Null*: Does nothing.
-NUL = "\x00"
+NUL = "\u0000"
 
 #: *Bell*: Beeps.
-BEL = "\x07"
+BEL = "\u0007"
 
 #: *Backspace*: Backspace one column, but not past the begining of the
 #: line.
-BS = "\x08"
+BS = "\u0008"
 
 #: *Horizontal tab*: Move cursor to the next tab stop, or to the end
 #: of the line if there is no earlier tab stop.
-HT = "\x09"
+HT = "\u0009"
 
 #: *Linefeed*: Give a line feed, and, if :data:`pyte.modes.LNM` (new
 #: line mode) is set also a carriage return.
 LF = "\n"
 #: *Vertical tab*: Same as :data:`LF`.
-VT = "\x0b"
+VT = "\u000b"
 #: *Form feed*: Same as :data:`LF`.
-FF = "\x0c"
+FF = "\u000c"
 
 #: *Carriage return*: Move cursor to left margin on current line.
 CR = "\r"
 
 #: *Shift out*: Activate G1 character set.
-SO = "\x0e"
+SO = "\u000e"
 
 #: *Shift in*: Activate G0 character set.
-SI = "\x0f"
+SI = "\u000f"
 
 #: *Cancel*: Interrupt escape sequence. If received during an escape or
 #: control sequence, cancels the sequence and displays substitution
 #: character.
-CAN = "\x18"
+CAN = "\u0018"
 #: *Substitute*: Same as :data:`CAN`.
-SUB = "\x1a"
+SUB = "\u001a"
 
 #: *Escape*: Starts an escape sequence.
-ESC = "\x1b"
+ESC = "\u001b"
 
 #: *Delete*: Is ignored.
-DEL = "\x7f"
+DEL = "\u007f"
 
 #: *Control sequence introducer*: An equivalent for ``ESC [``.
-CSI = "\x9b"
-
-#: *String terminator*.
-ST = "\x9c"
-
-#: *Operating system command*.
-OSC = "\x9d"
+CSI = "\u009b"

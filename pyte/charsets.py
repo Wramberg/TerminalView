@@ -11,9 +11,7 @@
               from linux kernel source and therefore are licensed
               under **GPL**.
 
-    :copyright: (c) 2011-2012 by Selectel.
-    :copyright: (c) 2012-2017 by pyte authors and contributors,
-                    see AUTHORS for details.
+    :copyright: (c) 2011-2013 by Selectel, see AUTHORS for details.
     :license: LGPL, see LICENSE for more details.
 """
 
@@ -23,7 +21,7 @@ from .compat import chr, map
 
 
 #: Latin1.
-LAT1_MAP = "".join(map(chr, range(256)))
+LAT1_MAP = list(map(chr, range(256)))
 
 #: VT100 graphic character set.
 VT100_MAP = "".join(chr(c) for c in [

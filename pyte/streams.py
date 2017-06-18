@@ -8,50 +8,53 @@
     typically used:
 
     >>> import pyte
-    >>> screen = pyte.Screen(80, 24)
-    >>> stream = pyte.Stream(screen)
-    >>> stream.feed("\x1b[5B")  # Move the cursor down 5 rows.
-    >>> screen.cursor.y
+    >>>
+    >>> class Dummy(object):
+    ...     def __init__(self):
+    ...         self.y = 0
+    ...
+    ...     def cursor_up(self, count=None):
+    ...         self.y += count or 1
+    ...
+    >>> dummy = Dummy()
+    >>> stream = pyte.Stream()
+    >>> stream.attach(dummy)
+    >>> stream.feed(u"\u001B[5A")  # Move the cursor up 5 rows.
+    >>> dummy.y
     5
 
-    :copyright: (c) 2011-2012 by Selectel.
-    :copyright: (c) 2012-2017 by pyte authors and contributors,
-                    see AUTHORS for details.
+    :copyright: (c) 2011-2013 by Selectel, see AUTHORS for details.
     :license: LGPL, see LICENSE for more details.
 """
 
 from __future__ import absolute_import, unicode_literals
 
+import os
 import codecs
-import itertools
-import re
+import sys
 import warnings
-from collections import defaultdict
+from collections import defaultdict, namedtuple
 
 from . import control as ctrl, escape as esc
-from .compat import pass_through_str
+from .compat import str
+
+#: An entry in the :class:`~pyte.streams.Screen` listeners queue.
+ListenerSpec = namedtuple("ListenerSpec", "screen only before after")
+
+
+def noop(event):
+    """A noop before-after hook for :class:`~pyte.streams.ListenerSpec`."""
 
 
 class Stream(object):
-    """A stream is a state machine that parses a stream of bytes and
-    dispatches events based on what it sees.
-
-    :param pyte.screens.Screen screen: a screen to dispatch events to.
-    :param bool strict: check if a given screen implements all required
-                        events.
+    """A stream is a state machine that parses a stream of characters
+    and dispatches events based on what it sees.
 
     .. note::
 
-       Stream only accepts text as input, but if for some reason
+       Stream only accepts text as input, but if, for some reason,
        you need to feed it with bytes, consider using
        :class:`~pyte.streams.ByteStream` instead.
-
-    .. versionchanged 0.6.0::
-
-       For performance reasons the binding between stream events and
-       screen methods was made static. As a result, the stream **will
-       not** dispatch events to methods added to screen **after** the
-       stream was created.
 
     .. seealso::
 
@@ -89,6 +92,14 @@ class Stream(object):
         esc.DECALN: "alignment_display",
     }
 
+    #: "percent" escape sequences (Linux sequence to select character
+    #: set) -- ``ESC % <C>``.
+    percent = {
+        esc.DEFAULT: "charset_default",
+        esc.UTF8: "charset_utf8",
+        esc.UTF8_OBSOLETE: "charset_utf8",
+    }
+
     #: CSI escape sequences -- ``CSI P1;P2;...;Pn <fn>``.
     csi = {
         esc.ICH: "insert_characters",
@@ -120,123 +131,109 @@ class Stream(object):
         esc.HPA: "cursor_to_column"
     }
 
-    #: A set of all events dispatched by the stream.
-    events = frozenset(itertools.chain(
-        basic.values(), escape.values(), sharp.values(), csi.values(),
-        ["define_charset"],
-        ["set_icon_name", "set_title"],  # OSC.
-        ["draw", "debug"]))
+    def __init__(self):
+        self.listeners = []
+        self.state = "stream"  # Only used for testing.
+        self.parser = self._parser_fsm()
+        self.parser.send(None)
 
-    #: A regular expression pattern matching everything what can be
-    #: considered plain text.
-    _special = set([ctrl.ESC, ctrl.CSI, ctrl.NUL, ctrl.DEL, ctrl.OSC])
-    _special.update(basic)
-    _text_pattern = re.compile(
-        "[^" + "".join(map(re.escape, _special)) + "]+")
-    del _special
+    def consume(self, char):
+        """Consumes a single string character and advance the state as
+        necessary.
 
-    def __init__(self, screen=None, strict=True):
-        self.listener = None
-        self.strict = strict
-        self.use_utf8 = True
+        :param str char: a character to consume.
 
-        if screen is not None:
-            self.attach(screen)
+        .. deprecated:: 0.5.0
 
-    def attach(self, screen):
+           Use :meth:`feed` instead.
+        """
+        warnings.warn(".consume is deprecated and will be removed in "
+                      "pyte 0.5.2. Please use .feed instead.",
+                      category=DeprecationWarning)
+        return self.feed(char)
+
+    def feed(self, chars):
+        """Consumes a string and advance the state as necessary.
+
+        :param str chars: a string to feed from.
+        """
+        if not isinstance(chars, str):
+            raise TypeError("{0} requires text input"
+                            .format(self.__class__.__name__))
+
+        send = self.parser.send
+        for char in chars:
+            send(char)
+
+    def attach(self, screen, only=()):
         """Adds a given screen to the listener queue.
 
         :param pyte.screens.Screen screen: a screen to attach to.
+        :param list only: a list of events you want to dispatch to a
+                          given screen (empty by default, which means
+                          -- dispatch all events).
         """
-        if self.listener is not None:
-            warnings.warn("As of version 0.6.0 the listener queue is "
-                          "restricted to a single element. Existing "
-                          "listener {0} will be replaced."
-                          .format(self.listener), DeprecationWarning)
-
-        if self.strict:
-            for event in self.events:
-                if not hasattr(screen, event):
-                    raise TypeError("{0} is missing {1}".format(screen, event))
-
-        self.listener = screen
-        self._parser = self._parser_fsm()
-        self._taking_plain_text = next(self._parser)
+        before = getattr(screen, "__before__", noop)
+        after = getattr(screen, "__after__", noop)
+        self.listeners.append(ListenerSpec(screen, set(only), before, after))
 
     def detach(self, screen):
-        """Remove a given screen from the listener queue and fails
+        """Removes a given screen from the listener queue and fails
         silently if it's not attached.
 
         :param pyte.screens.Screen screen: a screen to detach.
         """
-        if screen is self.listener:
-            self.listener = None
+        for idx, spec in enumerate(self.listeners):
+            if screen is spec.screen:
+                self.listeners.pop(idx)
 
-    def feed(self, data):
-        """Consume some data and advances the state as necessary.
+    def dispatch(self, event, *args, **kwargs):
+        """Dispatches an event.
 
-        :param str data: a blob of data to feed from.
+        Event handlers are looked up implicitly in the screen's
+        ``__dict__``, so, if a screen only wants to handle ``DRAW``
+        events it should define a ``draw()`` method or pass
+        ``only=["draw"]`` argument to :meth:`attach`.
+
+        .. warning::
+
+           If any of the attached listeners throws an exception, the
+           subsequent callbacks are be aborted.
+
+        :param str event: event to dispatch.
         """
-        send = self._parser.send
-        draw = self.listener.draw
-        match_text = self._text_pattern.match
-        taking_plain_text = self._taking_plain_text
+        for screen, only, before, after in self.listeners:
+            if only and event not in only:
+                continue
 
-        length = len(data)
-        offset = 0
-        while offset < length:
-            if taking_plain_text:
-                match = match_text(data, offset)
-                if match:
-                    start, offset = match.span()
-                    draw(data[start:offset])
-                else:
-                    taking_plain_text = False
-            else:
-                taking_plain_text = send(data[offset:offset + 1])
-                offset += 1
+            try:
+                handler = getattr(screen, event)
+            except AttributeError:
+                continue
 
-        self._taking_plain_text = taking_plain_text
+            before(event)
+            handler(*args, **kwargs)
+            after(event)
 
     def _parser_fsm(self):
-        """An FSM implemented as a coroutine.
+        # In order to avoid getting KeyError exceptions below, we make sure
+        # that these dictionaries resolve to ``"debug"``.
+        basic = defaultdict(lambda: "debug", self.basic)
+        escape = defaultdict(lambda: "debug", self.escape)
+        sharp = defaultdict(lambda: "debug", self.sharp)
+        percent = defaultdict(lambda: "debug", self.percent)
+        csi = defaultdict(lambda: "debug", self.csi)
 
-        This generator is not the most beautiful, but it is as performant
-        as possible. When a process generates a lot of output, then this
-        will be the bottleneck, because it processes just one character
-        at a time.
+        dispatch = self.dispatch
 
-        Don't change anything without profiling first.
-        """
-        basic = self.basic
-        listener = self.listener
-        draw = listener.draw
-        debug = listener.debug
-
-        ESC, CSI = ctrl.ESC, ctrl.CSI
-        OSC, ST = ctrl.OSC, ctrl.ST
-        SP_OR_GT = ctrl.SP + ">"
-        NUL_OR_DEL = ctrl.NUL + ctrl.DEL
-        CAN_OR_SUB = ctrl.CAN + ctrl.SUB
-        ALLOWED_IN_CSI = "".join([ctrl.BEL, ctrl.BS, ctrl.HT, ctrl.LF,
-                                  ctrl.VT, ctrl.FF, ctrl.CR])
-
-        def create_dispatcher(mapping):
-            return defaultdict(lambda: debug, dict(
-                (event, getattr(listener, attr))
-                for event, attr in mapping.items()))
-
-        basic_dispatch = create_dispatcher(basic)
-        sharp_dispatch = create_dispatcher(self.sharp)
-        escape_dispatch = create_dispatcher(self.escape)
-        csi_dispatch = create_dispatcher(self.csi)
-
+        ESC, CSI, SP = ctrl.ESC, ctrl.CSI, ctrl.SP
+        NUL_OR_DEL = [ctrl.NUL, ctrl.DEL]
+        CAN_OR_SUB = [ctrl.CAN, ctrl.SUB]
+        ALLOWED_IN_CSI = [ctrl.BEL, ctrl.BS, ctrl.HT, ctrl.LF, ctrl.VT,
+                          ctrl.FF, ctrl.CR]
         while True:
-            # ``True`` tells ``Screen.feed`` that it is allowed to send
-            # chunks of plain text directly to the listener, instead
-            # of this generator.
-            char = yield True
-
+            self.state = "stream"
+            char = yield
             if char == ESC:
                 # Most non-VT52 commands start with a left-bracket after the
                 # escape and then a stream of parameters and a command; with
@@ -249,36 +246,26 @@ class Stream(object):
                 #    recognizes ``ESC % C`` sequences for selecting control
                 #    character set. However, in the current version these
                 #    are noop.
+                self.state = "escape"
                 char = yield
                 if char == "[":
                     char = CSI  # Go to CSI.
-                elif char == "]":
-                    char = OSC  # Go to OSC.
                 else:
                     if char == "#":
-                        sharp_dispatch[(yield)]()
+                        self.state = "sharp"
+                        dispatch(sharp[(yield)])
                     if char == "%":
-                        self.select_other_charset((yield))
+                        self.state = "percent"
+                        dispatch(percent[(yield)])
                     elif char in "()":
-                        code = yield
-                        if self.use_utf8:
-                            continue
-
-                        # See http://www.cl.cam.ac.uk/~mgk25/unicode.html#term
-                        # for the why on the UTF-8 restriction.
-                        listener.define_charset(code, mode=char)
+                        self.state = "charset"
+                        dispatch("set_charset", (yield), mode=char)
                     else:
-                        escape_dispatch[char]()
-                    continue    # Don't go to CSI.
+                        dispatch(escape[char])
+                    continue  # Don't go to CSI.
 
             if char in basic:
-                # Ignore shifts in UTF-8 mode. See
-                # http://www.cl.cam.ac.uk/~mgk25/unicode.html#term for
-                # the why on UTF-8 restriction.
-                if char == ctrl.SI or char == ctrl.SO and self.use_utf8:
-                    continue
-
-                basic_dispatch[char]()
+                dispatch(basic[char])
             elif char == CSI:
                 # All parameters are unsigned, positive decimal integers, with
                 # the most significant digit sent first. Any parameter greater
@@ -293,6 +280,8 @@ class Stream(object):
                 #    `VT220 Programmer Ref. <http://vt100.net/docs/vt220-rm/>`_
                 #        For details on the characters valid for use as
                 #        arguments.
+                self.state = "arguments"
+
                 params = []
                 current = ""
                 private = False
@@ -301,15 +290,16 @@ class Stream(object):
                     if char == "?":
                         private = True
                     elif char in ALLOWED_IN_CSI:
-                        basic_dispatch[char]()
-                    elif char in SP_OR_GT:
-                        pass  # Secondary DA is not supported atm.
+                        dispatch(basic[char])
+                    elif char == SP or char == ">":
+                        # We don't handle secondary DA atm.
+                        pass
                     elif char in CAN_OR_SUB:
                         # If CAN or SUB is received during a sequence, the
-                        # current sequence is aborted; terminal displays
-                        # the substitute character, followed by characters
-                        # in the sequence received after CAN or SUB.
-                        draw(char)
+                        # current sequence is aborted; terminal displays the
+                        # substitute character, followed by characters in the
+                        # sequence received after CAN or SUB.
+                        dispatch("draw", char)
                         break
                     elif char.isdigit():
                         current += char
@@ -320,75 +310,114 @@ class Stream(object):
                             current = ""
                         else:
                             if private:
-                                csi_dispatch[char](*params, private=True)
+                                dispatch(csi[char], *params, private=True)
                             else:
-                                csi_dispatch[char](*params)
+                                dispatch(csi[char], *params)
                             break  # CSI is finished.
-            elif char == OSC:
-                code = yield
-                param = ""
-                while True:
-                    char = yield
-                    if char == ST or char == ctrl.BEL:
-                        break
-                    else:
-                        param += char
-
-                param = param[1:]  # Drop the ;.
-                if code in "01":
-                    listener.set_icon_name(param)
-                if code in "02":
-                    listener.set_title(param)
             elif char not in NUL_OR_DEL:
-                draw(char)
-
-    def select_other_charset(self, code):
-        """Select other (non G0 or G1) charset.
-
-        :param str code: character set code, should be a character from
-                         ``"@G8"``, otherwise ignored.
-
-        .. note:: We currently follow ``"linux"`` and only use this
-                  command to switch from ISO-8859-1 to UTF-8 and back.
-
-        .. versionadded:: 0.6.0
-
-        .. seealso::
-
-           `Standard ECMA-35, Section 15.4 \
-           <http://ecma-international.org/publications/standards/Ecma-035.htm>`_
-           for a description of VTXXX character set machinery.
-        """
-        # A noop since all input is Unicode-only.
+                dispatch("draw", char)
 
 
 class ByteStream(Stream):
-    """A stream which takes bytes as input.
+    """A stream, which takes bytes (instead of strings) as input
+    and tries to decode them using a given list of possible encodings.
+    It uses :class:`codecs.IncrementalDecoder` internally, so broken
+    bytes are not an issue.
 
-    Bytes are decoded to text using either UTF-8 (default) or the encoding
-    selected via :meth:`~pyte.Stream.select_other_charset`.
+    By default, the following decoding strategy is used:
 
-    .. attribute:: use_utf8
+    * First, try strict ``"utf-8"``, proceed if received and
+      :exc:`UnicodeDecodeError` ...
+    * Try strict ``"cp437"``, failed? move on ...
+    * Use ``"utf-8"`` with invalid bytes replaced -- this one will
+      always succeed.
 
-       Assume the input to :meth:`~pyte.streams.ByteStream.feed` is encoded
-       using UTF-8. Defaults to ``True``.
+    >>> stream = ByteStream()
+    >>> stream.feed(b"foo".decode("utf-8"))
+    Traceback (most recent call last):
+      File "<stdin>", line 1, in <module>
+      File "pyte/streams.py", line 367, in feed
+        "{0} requires input in bytes".format(self.__class__.__name__))
+    TypeError: ByteStream requires input in bytes
+    >>> stream.feed(b"foo")
+
+    :param list encodings: a list of ``(encoding, errors)`` pairs,
+                           where the first element is encoding name,
+                           ex: ``"utf-8"`` and second defines how
+                           decoding errors should be handled; see
+                           :meth:`str.decode` for possible values.
     """
-    def __init__(self, *args, **kwargs):
-        super(ByteStream, self).__init__(*args, **kwargs)
 
-        self.utf8_decoder = codecs.getincrementaldecoder("utf-8")("replace")
+    def __init__(self, encodings=None):
+        encodings = encodings or [
+            ("utf-8", "strict"),
+            ("cp437", "strict"),
+            ("utf-8", "replace")
+        ]
 
-    def feed(self, data):
-        if self.use_utf8:
-            data = self.utf8_decoder.decode(data)
-        else:
-            data = pass_through_str(data)
+        self.buffer = b"", 0
+        self.decoders = [codecs.getincrementaldecoder(encoding)(errors)
+                         for encoding, errors in encodings]
 
-        super(ByteStream, self).feed(data)
+        super(ByteStream, self).__init__()
 
-    def select_other_charset(self, code):
-        if code == "@":
-            self.use_utf8 = False
-            self.utf8_decoder.reset()
-        elif code in "G8":
-            self.use_utf8 = True
+    def feed(self, chars):
+        if not isinstance(chars, bytes):
+            raise TypeError(
+                "{0} requires input in bytes".format(self.__class__.__name__))
+
+        for idx, decoder in enumerate(self.decoders):
+            decoder.setstate(self.buffer)
+
+            try:
+                chars = decoder.decode(chars)
+            except UnicodeDecodeError:
+                continue
+            else:
+                self.buffer = decoder.getstate()
+                return super(ByteStream, self).feed(chars)
+
+        raise ValueError("unknown encoding")
+
+
+class DebugStream(ByteStream):
+    r"""Stream, which dumps a subset of the dispatched events to a given
+    file-like object (:data:`sys.stdout` by default).
+
+    >>> stream = DebugStream()
+    >>> stream.feed("\x1b[1;24r\x1b[4l\x1b[24;1H\x1b[0;10m")
+    SET_MARGINS 1; 24
+    RESET_MODE 4
+    CURSOR_POSITION 24; 1
+    SELECT_GRAPHIC_RENDITION 0; 10
+
+    :param file to: a file-like object to write debug information to.
+    :param list only: a list of events you want to debug (empty by
+                      default, which means -- debug all events).
+    """
+
+    def __init__(self, to=sys.stdout, only=(), *args, **kwargs):
+        super(DebugStream, self).__init__(*args, **kwargs)
+
+        def safe_str(chunk):
+            if isinstance(chunk, bytes):
+                chunk = chunk.decode("utf-8")
+            elif not isinstance(chunk, str):
+                chunk = str(chunk)
+
+            return chunk
+
+        class Bugger(object):
+            __before__ = __after__ = lambda *args: None
+
+            def __getattr__(self, event):
+                def inner(*args, **kwargs):
+                    to.write(event.upper() + " ")
+                    to.write("; ".join(map(safe_str, args)))
+                    to.write(" ")
+                    to.write(", ".join("{0}: {1}".format(k, safe_str(v))
+                                       for k, v in kwargs.items()))
+                    to.write(os.linesep)
+                return inner
+
+        self.attach(Bugger(), only=only)

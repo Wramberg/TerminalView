@@ -2,6 +2,7 @@
 Wrapper module for the Pyte terminal emulator
 """
 from collections import deque, namedtuple
+from itertools import islice
 import math
 
 from . import pyte
@@ -25,7 +26,6 @@ class PyteTerminalEmulator():
 
     def resize(self, lines, cols):
         self._screen.scroll_to_bottom()
-        self._screen.reset_history()
         self._screen.dirty.update(range(lines))
         return self._screen.resize(lines, cols)
 
@@ -64,12 +64,15 @@ class PyteTerminalEmulator():
     def color_map(self, lines):
         return convert_pyte_buffer_to_colormap(self._screen.buffer, lines)
 
+    def display(self):
+        return self._screen.display
+
 
 History = namedtuple("History", "top bottom ratio size position")
 Margins = namedtuple("Margins", "top bottom")
 
 
-class CustomHistoryScreen(pyte.Screen):
+class CustomHistoryScreen(pyte.DiffScreen):
     """
     Custom history screen customized for this plugin. Basically a copy of the
     standard pyte history screen but with some optimizations.
@@ -95,10 +98,12 @@ class CustomHistoryScreen(pyte.Screen):
         Ensure all lines on a screen have proper width columns. Extra characters
         are truncated, missing characters are filled with whitespace.
         """
-        for line in self.buffer.values():
-            for x in line:
-                if x > self.columns:
-                    line.pop(x)
+        for idx, line in enumerate(self.buffer):
+            if len(line) > self.columns:
+                self.buffer[idx] = line[:self.columns]
+            elif len(line) < self.columns:
+                self.buffer[idx] = line + take(self.columns - len(line),
+                                               self.default_line)
 
         # If we're at the bottom of the history buffer and `DECTCEM`
         # mode is set -- show the cursor.
@@ -134,7 +139,7 @@ class CustomHistoryScreen(pyte.Screen):
         """
         Overloaded to update top history with the removed lines
         """
-        top, bottom = self.margins or Margins(0, self.lines - 1)
+        top, bottom = self.margins
 
         if self.cursor.y == bottom:
             self.history.top.append(self.buffer[top])
@@ -145,7 +150,7 @@ class CustomHistoryScreen(pyte.Screen):
         """
         Overloaded to update bottom history with the removed lines
         """
-        top, bottom = self.margins or Margins(0, self.lines - 1)
+        top, bottom = self.margins
 
         if self.cursor.y == top:
             self.history.bottom.append(self.buffer[bottom])
@@ -160,16 +165,13 @@ class CustomHistoryScreen(pyte.Screen):
             mid = min(len(self.history.top),
                       int(math.ceil(self.lines * self.history.ratio)))
 
-            self.history.bottom.extendleft(
-                self.buffer[y]
-                for y in range(self.lines - 1, self.lines - mid - 1, -1))
+            self.history.bottom.extendleft(reversed(self.buffer[-mid:]))
             self.history = self.history \
                 ._replace(position=self.history.position - self.lines)
 
-            for y in range(self.lines - 1, mid - 1, -1):
-                self.buffer[y] = self.buffer[y - mid]
-            for y in range(mid - 1, -1, -1):
-                self.buffer[y] = self.history.top.pop()
+            self.buffer[:] = list(reversed([
+                self.history.top.pop() for _ in range(mid)
+            ])) + self.buffer[:-mid]
 
             self.dirty = set(range(self.lines))
 
@@ -181,16 +183,20 @@ class CustomHistoryScreen(pyte.Screen):
             mid = min(len(self.history.bottom),
                       int(math.ceil(self.lines * self.history.ratio)))
 
-            self.history.top.extend(self.buffer[y] for y in range(mid))
+            self.history.top.extend(self.buffer[:mid])
             self.history = self.history \
                 ._replace(position=self.history.position + self.lines)
 
-            for y in range(self.lines - mid):
-                self.buffer[y] = self.buffer[y + mid]
-            for y in range(self.lines - mid, self.lines):
-                self.buffer[y] = self.history.bottom.popleft()
+            self.buffer[:] = self.buffer[mid:] + [
+                self.history.bottom.popleft() for _ in range(mid)
+            ]
 
             self.dirty = set(range(self.lines))
+
+
+def take(n, iterable):
+    """Returns first n items of the iterable as a list."""
+    return list(islice(iterable, n))
 
 
 def convert_pyte_buffer_to_colormap(buffer, lines):
@@ -225,9 +231,8 @@ def convert_pyte_buffer_to_colormap(buffer, lines):
         last_index = 0
         field_length = 0
 
-        for char_index in line.keys():
-            char = line[char_index]
-
+        char_index = 0
+        for char in line:
             # Default bg is black
             if char.bg is "default":
                 bg = "black"
@@ -262,4 +267,5 @@ def convert_pyte_buffer_to_colormap(buffer, lines):
                     color_map[line_index] = {}
                 color_map[line_index][last_index] = color_dict
 
+            char_index = char_index + 1
     return color_map
