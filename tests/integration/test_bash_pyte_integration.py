@@ -44,7 +44,7 @@ class NanoSuspendResumeTest(unittest.TestCase):
         self.linux_pty_bash.update_screen_size(self.lines, self.columns)
 
         # Read the initial prompt - note this has to be placed after resize
-        data = self._read_bytes_from_shell(1024, timeout=0.5)
+        data = self._read_bytes_from_shell(1024, timeout=1)
         self.term_emulator.feed(data)
 
         # Check display matches expected
@@ -107,8 +107,8 @@ class NanoSuspendResumeTest(unittest.TestCase):
         data = self._read_bytes_from_shell(4096, timeout=1)
         self.term_emulator.feed(data)
         disp = self.term_emulator.display()
-        self.assertTrue(disp[-2].startswith("[1]+  Stopped"))
-        self.assertEqual(disp[-1], self.shell_prompt.ljust(self.columns))
+        self.assertTrue(disp[-2].startswith("[1]+  Stopped"), msg=disp)
+        self.assertEqual(disp[-1], self.shell_prompt.ljust(self.columns), msg=disp)
 
         # Bring nano back
         cmd = "fg"
@@ -122,7 +122,7 @@ class NanoSuspendResumeTest(unittest.TestCase):
         # Check display matches expected
         disp = self.term_emulator.display()
         for i in range(len(disp)):
-            self.assertEqual(disp[i], self.expected_display[i])
+            self.assertEqual(disp[i], self.expected_display[i], msg=disp)
 
     def _read_bytes_from_shell(self, num_bytes, timeout=1):
         """
