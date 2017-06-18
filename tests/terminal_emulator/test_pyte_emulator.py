@@ -126,9 +126,10 @@ class PyteBufferStubFactory():
 
         self.buffer = []
         for i in range(nb_lines):
-            line = {}
+            line = []
             for j in range(nb_cols):
-                line[j] = default_char
+                # line[j] = default_char # in newer version of pyte line is a dict
+                line.append(default_char)
             self.buffer.append(line)
 
     def set_color(self, line, col, bg, fg):
