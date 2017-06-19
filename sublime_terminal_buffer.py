@@ -147,6 +147,23 @@ class TerminalViewKeypress(sublime_plugin.TextCommand):
             cb(kwargs["key"], kwargs["ctrl"], kwargs["alt"], kwargs["shift"], kwargs["meta"])
 
 
+class TerminalViewPaste(sublime_plugin.TextCommand):
+    def run(self, edit):
+        if not self.view.terminal_view_keypress_callback:
+            return
+
+        keypress_cb = self.view.terminal_view_keypress_callback
+        copied = sublime.get_clipboard()
+        copied = copied.replace("\r\n", "\n")
+        for char in copied:
+            if char == "\n" or char == "\r":
+                keypress_cb("enter")
+            elif char == "\t":
+                keypress_cb("tab")
+            else:
+                keypress_cb(char)
+
+
 class TerminalViewUpdate(sublime_plugin.TextCommand):
     def run(self, edit):
         # Check if scroll was requested

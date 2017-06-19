@@ -76,6 +76,7 @@ Shortcut | Command | Description
 `alt` + `mouse wheel down` | terminal_view_scroll | Scroll forward in terminal history
 `shift` + `pageup` | terminal_view_scroll | Scroll back in terminal history
 `shift` + `pagedown` | terminal_view_scroll | Scroll forward in terminal history
+`ctrl` + `shift` + `v` | terminal_view_paste | Paste the content of the clipboard to the terminal
 `ctrl` + `shift` + `t` | new_file | Open a new file
 `ctrl` + `shift` + `n` | new_file | Open a new file
 `ctrl` + `shift` + `w` | close | Close the terminal view
