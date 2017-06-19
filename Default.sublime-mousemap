@@ -1,0 +1,4 @@
+[
+    { "button": "scroll_up", "modifiers": ["alt"], "command": "terminal_view_scroll", "args": {"forward": false}, "context": [{"key": "setting.terminal_view"}] },
+    { "button": "scroll_down", "modifiers": ["alt"], "command": "terminal_view_scroll", "args": {"forward": true}, "context": [{"key": "setting.terminal_view"}] },
+]

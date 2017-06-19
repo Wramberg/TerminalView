@@ -72,6 +72,8 @@ Lastly TerminalView also includes a few utility keybindings.
 
 Shortcut | Command | Description
 --- | --- | ---
+`alt` + `mouse wheel up` | terminal_view_scroll | Scroll back in terminal history
+`alt` + `mouse wheel down` | terminal_view_scroll | Scroll forward in terminal history
 `shift` + `pageup` | terminal_view_scroll | Scroll back in terminal history
 `shift` + `pagedown` | terminal_view_scroll | Scroll forward in terminal history
 `ctrl` + `shift` + `t` | new_file | Open a new file
