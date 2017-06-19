@@ -50,7 +50,7 @@ The following keys are forwarded to the shell by default:
 * Arrow keys
 * `home`, `end`, `delete`, `insert`, `pageup`, `pagedown`
 * `escape`, `tab`, `space`, `backspace`, `enter`
-* Any `ctrl`+`<char>` combination except `ctrl`+`k`
+* Any `ctrl`+`<char>` combination except `ctrl`+`k` (see below if you want this to go to the shell instead of ST3)
 * Any `alt`+`<char>` combination
 * Any `ctrl`+`<arrow key>` combination
 
@@ -68,19 +68,22 @@ Similarly, if you want to override some of the default TerminalView keybindings 
 { "keys": ["ctrl+w"], "command": "close" },
 ```
 
-Lastly TerminalView also includes a few utility keybindings.
+Lastly TerminalView also includes a few utility keybindings:
 
 Shortcut | Command | Description
 --- | --- | ---
+`ctrl` + `shift` + `c` | terminal_view_copy | Copy the selection in the terminal into the clipboard
+`ctrl` + `shift` + `v` | terminal_view_paste | Paste the contents of the clipboard into the terminal
 `alt` + `mouse wheel up` | terminal_view_scroll | Scroll back in terminal history
 `alt` + `mouse wheel down` | terminal_view_scroll | Scroll forward in terminal history
 `shift` + `pageup` | terminal_view_scroll | Scroll back in terminal history
 `shift` + `pagedown` | terminal_view_scroll | Scroll forward in terminal history
-`ctrl` + `shift` + `v` | terminal_view_paste | Paste the content of the clipboard to the terminal
 `ctrl` + `shift` + `t` | new_file | Open a new file
 `ctrl` + `shift` + `n` | new_file | Open a new file
 `ctrl` + `shift` + `w` | close | Close the terminal view
 `ctrl` + `shift` + `q` | close | Close the terminal view
+
+Note that any keybindings you may have that move the cursor can be used for selection when copying. They do not move the actual terminal cursor however so whenever the terminal is updated the cursor will snap back to its point of origin.
 
 ## Changing shell
 If you want to use another shell it is highly recommended to do this through bash with the -c command line argument. You can control the shell command through the *cmd* argument to the *terminal_view_open* command. In addition, you can also alter the title of the terminal view to reflect which shell is running.
@@ -110,8 +113,9 @@ The color scheme can be tweaked by copying the default color scheme into the use
 ## Future development
 Development is performed ad-hoc and current plans include:
 
-* Copy/paste functionality through `ctrl`+`shift`+`c`/`v`
-* Functionality for dynamic amount of scrolling
+* Using ST3 scrolling instead of pyte scrolling (requires decent amount of work but would make scrolling and copying better)
+* Functionality for dynamic amount of scrolling (right now its a fixed ratio only adjustable through settings)
+* Support for "editor" mode where cursor can move freely and standard ST3 keybindings can be used
 * 256 color support
 * Support for more shells
 * Experimentation with Windows support (through WSL)

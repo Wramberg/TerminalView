@@ -26,25 +26,19 @@ class SublimeTerminalBuffer():
         self._view.settings().set("caret_style", "blink")
         self._view.settings().set("scroll_past_end", False)
         self._view.settings().add_on_change('color_scheme', lambda: set_color_scheme(self._view))
+        sublime.active_window().focus_view(self._view)
 
-        # Get terminal view settings
         settings = sublime.load_settings('TerminalView.sublime-settings')
-
-        # Save logger on view
         self._view.terminal_view_logger = logger
+        self._view.terminal_view_show_colors = settings.get("terminal_view_show_colors", False)
+        self._view.terminal_view_last_cursor_pos = None
 
         # Flag to request scrolling in view (from one thread to another)
         self._view.terminal_view_scroll = None
 
-        # Check if colors are enabled
-        self._view.terminal_view_show_colors = settings.get("terminal_view_show_colors", False)
-
         # Mark in the views private settings that this is a terminal view so we
         # can use this as context in the keymap
         self._view.settings().set("terminal_view", True)
-
-        # Focus terminal view
-        sublime.active_window().focus_view(self._view)
 
         # Save a dict on the view to store color regions for each line
         self._view.terminal_view_color_regions = {}
@@ -147,6 +141,24 @@ class TerminalViewKeypress(sublime_plugin.TextCommand):
             cb(kwargs["key"], kwargs["ctrl"], kwargs["alt"], kwargs["shift"], kwargs["meta"])
 
 
+class TerminalViewCopy(sublime_plugin.TextCommand):
+    def run(self, edit):
+        # Get selected region or use line that cursor is on if nothing is
+        # selected
+        selected_region = self.view.sel()[0]
+        if selected_region.empty():
+            selected_region = self.view.line(selected_region)
+
+        # Clean the selected text and move it into clipboard
+        selected_text = self.view.substr(selected_region)
+        selected_lines = selected_text.split("\n")
+        clean_contents_to_copy = ""
+        for line in selected_lines:
+            clean_contents_to_copy = clean_contents_to_copy + line.rstrip() + "\n"
+
+        sublime.set_clipboard(clean_contents_to_copy[:-1])
+
+
 class TerminalViewPaste(sublime_plugin.TextCommand):
     def run(self, edit):
         if not self.view.terminal_view_keypress_callback:
@@ -172,6 +184,10 @@ class TerminalViewUpdate(sublime_plugin.TextCommand):
         # Update dirty lines in buffer if there are any
         dirty_lines = self.view.terminal_view_emulator.dirty_lines()
         if len(dirty_lines) > 0:
+            # Invalidate the last cursor position when dirty lines are updated
+            self.view.terminal_view_last_cursor_pos = None
+
+            # Generate color map
             color_map = {}
             if self.view.terminal_view_show_colors:
                 start = time.time()
@@ -209,10 +225,14 @@ class TerminalViewUpdate(sublime_plugin.TextCommand):
             self.view.terminal_view_scroll = None
 
     def _update_cursor(self):
-        (cursor_y, cursor_x) = self.view.terminal_view_emulator.cursor()
-        tp = self.view.text_point(cursor_y, cursor_x)
+        cursor_pos = self.view.terminal_view_emulator.cursor()
+        if self.view.terminal_view_last_cursor_pos == cursor_pos:
+            return
+
+        tp = self.view.text_point(cursor_pos[0], cursor_pos[1])
         self.view.sel().clear()
         self.view.sel().add(sublime.Region(tp, tp))
+        self.view.terminal_view_last_cursor_pos = cursor_pos
 
     def _update_lines(self, edit, dirty_lines, color_map):
         self.view.set_read_only(False)

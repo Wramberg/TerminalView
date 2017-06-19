@@ -18,14 +18,14 @@
             <string>#ffffff</string>
 
             <key>lineHighlight</key>
-            <string>#ffde935f</string>
+            <string>#000000</string>
             <key>invisibles</key>
             <string>#ffffff</string>
 
             <key>selection</key>
-            <string>#ffffff80</string>
+            <string>#ffffff40</string>
             <key>selectionBorder</key>
-            <string>#ffde935f</string>
+            <string>#ffffff80</string>
             <key>inactiveSelection</key>
             <string>#ffffff40</string>
 
