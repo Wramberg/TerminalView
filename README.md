@@ -118,6 +118,9 @@ Development is performed ad-hoc and current plans include:
 * Support for "editor" mode where cursor can move freely and standard ST3 keybindings can be used
 * 256 color support
 * Support for more shells
+* Support for re-opening old sessions when ST3 is restarted (may not be feasible, investigation needed)
+* QOL shortcut that can find and open filepaths in the terminal window
+* Static syntax highlighting option (user can provide a regex file)
 * Experimentation with Windows support (through WSL)
 
 ## Acknowledgments
