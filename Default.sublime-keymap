@@ -8,6 +8,12 @@
     {"keys": ["shift+pagedown"], "command": "terminal_view_scroll", "args": {"forward": true}, "context": [{"key": "setting.terminal_view"}]},
     {"keys": ["ctrl+shift+v"], "command": "terminal_view_paste", "context": [{"key": "setting.terminal_view"}]},
     {"keys": ["ctrl+shift+c"], "command": "terminal_view_copy", "context": [{"key": "setting.terminal_view"}]},
+    {"keys": ["ctrl+shift+left"], "command": "move", "args": {"by": "characters", "forward": false}, "context": [{"key": "setting.terminal_view"}]},
+    {"keys": ["ctrl+shift+right"], "command": "move", "args": {"by": "characters", "forward": true}, "context": [{"key": "setting.terminal_view"}]},
+    {"keys": ["ctrl+shift+up"], "command": "move", "args": {"by": "lines", "forward": false}, "context": [{"key": "setting.terminal_view"}]},
+    {"keys": ["ctrl+shift+down"], "command": "move", "args": {"by": "lines", "forward": true}, "context": [{"key": "setting.terminal_view"}]},
+    {"keys": ["ctrl+shift+home"], "command": "move_to", "args": {"to": "bol", "extend": false}, "context": [{"key": "setting.terminal_view"}]},
+    {"keys": ["ctrl+shift+end"], "command": "move_to", "args": {"to": "eol", "extend": false}, "context": [{"key": "setting.terminal_view"}]},
 
     // Basic keys
     {"keys": ["up"], "command": "terminal_view_keypress", "args": {"key": "up"}, "context": [{"key": "setting.terminal_view"}]},

@@ -72,18 +72,16 @@ Lastly TerminalView also includes a few utility keybindings:
 
 Shortcut | Command | Description
 --- | --- | ---
-`ctrl` + `shift` + `c` | terminal_view_copy | Copy the selection in the terminal into the clipboard
+`ctrl` + `shift` + `c` | terminal_view_copy | Copy the selection/line in the terminal into the clipboard
 `ctrl` + `shift` + `v` | terminal_view_paste | Paste the contents of the clipboard into the terminal
-`alt` + `mouse wheel up` | terminal_view_scroll | Scroll back in terminal history
-`alt` + `mouse wheel down` | terminal_view_scroll | Scroll forward in terminal history
-`shift` + `pageup` | terminal_view_scroll | Scroll back in terminal history
-`shift` + `pagedown` | terminal_view_scroll | Scroll forward in terminal history
-`ctrl` + `shift` + `t` | new_file | Open a new file
-`ctrl` + `shift` + `n` | new_file | Open a new file
-`ctrl` + `shift` + `w` | close | Close the terminal view
-`ctrl` + `shift` + `q` | close | Close the terminal view
+`alt` + `mouse wheel up` / `mouse wheel down` | terminal_view_scroll | Scroll back/forward in terminal history
+`shift` + `pageup` / `pagedown` | terminal_view_scroll | Scroll back/forward in terminal history
+`ctrl` + `shift` + `t` / `n` | new_file | Open a new file
+`ctrl` + `shift` + `w` / `q` | close | Close the terminal view
+`ctrl` + `shift` + `up` / `down` / `left` / `right` | move | Move the ST3 cursor (not the terminal cursor)
+`ctrl` + `shift` + `home` / `end` | move_to | Move the ST3 cursor to beginning/end of line
 
-Note that any keybindings you may have that move the cursor can be used for selection when copying. They do not move the actual terminal cursor however so whenever the terminal is updated the cursor will snap back to its point of origin.
+Note that standard ST3 keybindings are selection are shadowed which mean you can use `shift` + `keys` for selection in the terminal in case you prefer to use the keyboard. These keybindings do not move the actual terminal cursor however so whenever the terminal is updated the cursor will snap back to its point of origin.
 
 ## Changing shell
 If you want to use another shell it is highly recommended to do this through bash with the -c command line argument. You can control the shell command through the *cmd* argument to the *terminal_view_open* command. In addition, you can also alter the title of the terminal view to reflect which shell is running.
