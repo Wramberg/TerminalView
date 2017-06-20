@@ -10,7 +10,7 @@ from . import terminal_emulator
 
 
 class SublimeTerminalBuffer():
-    def __init__(self, sublime_view, title, logger):
+    def __init__(self, sublime_view, title, logger, syntax_file=None):
         self._view = sublime_view
         self._view.set_name(title)
         self._view.set_scratch(True)
@@ -26,6 +26,10 @@ class SublimeTerminalBuffer():
         self._view.settings().set("caret_style", "blink")
         self._view.settings().set("scroll_past_end", False)
         self._view.settings().add_on_change('color_scheme', lambda: set_color_scheme(self._view))
+
+        if syntax_file is not None:
+            self._view.set_syntax_file("Packages/User/" + syntax_file)
+
         sublime.active_window().focus_view(self._view)
 
         settings = sublime.load_settings('TerminalView.sublime-settings')

@@ -22,7 +22,7 @@ class TerminalViewOpen(sublime_plugin.WindowCommand):
     TerminalViewCore instance for that view is called to handle everything.
     """
     def run(self, cmd="/bin/bash -l", title="Terminal",
-            cwd="${project_path:${folder:${file_path}}}"):
+            cwd="${project_path:${folder:${file_path}}}", syntax=None):
         """
         Open a new terminal view
 
@@ -42,7 +42,7 @@ class TerminalViewOpen(sublime_plugin.WindowCommand):
         if not cwd:
             cwd = os.environ["HOME"]
 
-        args = {"cmd": cmd, "title": title, "cwd": cwd}
+        args = {"cmd": cmd, "title": title, "cwd": cwd, "syntax": syntax}
         self.window.new_file().run_command("terminal_view_core", args=args)
 
 
@@ -51,7 +51,7 @@ class TerminalViewCore(sublime_plugin.TextCommand):
     Main command to glue all parts together for a single instance of a terminal
     view. For each sublime view an instance of this class exists.
     """
-    def run(self, _, cmd, title, cwd):
+    def run(self, _, cmd, title, cwd, syntax):
         """
         Initialize the view, in which this command is called, as a terminal
         view.
@@ -67,7 +67,8 @@ class TerminalViewCore(sublime_plugin.TextCommand):
 
         # Initialize the sublime view
         self._terminal_buffer = sublime_terminal_buffer.SublimeTerminalBuffer(self.view, title,
-                                                                              self._console_logger)
+                                                                              self._console_logger,
+                                                                              syntax)
         self._terminal_buffer.set_keypress_callback(self.terminal_view_keypress_callback)
         self._terminal_buffer_is_open = True
         self._terminal_rows = 0

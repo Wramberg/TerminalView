@@ -108,6 +108,33 @@ The settings are available in the menu: *Preferences->Package Settings->Terminal
 ## Color scheme
 The color scheme can be tweaked by copying the default color scheme into the user color scheme file. Both of these files are available in the menu: *Preferences->Package Settings->TerminalView*.
 
+## Syntax highlighting
+The plugin supports user provided syntax highlighting for static coloring. To use this feature create a *<name>.sublime-syntax* file in your *Packages/User* folder. The *packages* folder can accessed through the menu: *Preferences->Browse Packages*. The content of the file depends entirely on your needs - see https://www.sublimetext.com/docs/3/syntax.html for details. As an example consider the following which highlights the prompt in bash.
+
+```
+%YAML 1.2
+---
+name: TerminalViewBash
+hidden: true
+file_extensions:
+  - terminal_view
+scope: text.terminal_view
+contexts:
+  main:
+    - match: '\w+@[A-z,\-_]+(?=:)'
+      scope: terminalview.black_green
+    - match: '([A-z,\-_/~0-9.]+\$)'
+      scope: terminalview.black_blue
+```
+
+The matching could be improved upon but it will do for the purpose of this example. Note that the scope names are chosen so they match with scopes that are already defined in the color scheme. The color scheme is available through the menu: *Preferences->Package Settings->TerminalView*. To change the color scheme see the "color scheme" section above. In this example the syntax file was saved as *bash.sublime-syntax* under the *Packages/User* folder. To use it when opening a bash terminal pass it to the *terminal_view_open* command with the *syntax* argument:
+
+```
+{ "keys": ["ctrl+alt+t"], "command": "terminal_view_open", "args": {"cmd": "/bin/bash -l", "title": "Bash Terminal", "syntax": "bash.sublime-syntax"}},
+```
+
+Note that no syntax-files are provided with the plugin at the moment.
+
 ## Future development
 Development is performed ad-hoc and current plans include:
 
