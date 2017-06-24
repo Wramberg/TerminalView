@@ -81,7 +81,7 @@ Shortcut | Command | Description
 `ctrl` + `shift` + `up` / `down` / `left` / `right` | move | Move the ST3 cursor (not the terminal cursor)
 `ctrl` + `shift` + `home` / `end` | move_to | Move the ST3 cursor to beginning/end of line
 
-Note that standard ST3 keybindings are selection are shadowed which mean you can use `shift` + `keys` for selection in the terminal in case you prefer to use the keyboard. These keybindings do not move the actual terminal cursor however so whenever the terminal is updated the cursor will snap back to its point of origin.
+Note that standard ST3 keybindings for selection are **not** shadowed which mean you can use `shift` + `keys` for selection in the terminal in case you prefer to use the keyboard. These keybindings do not move the actual terminal cursor however so whenever the terminal is updated the cursor will snap back to its point of origin.
 
 ## Changing shell
 If you want to use another shell it is highly recommended to do this through bash with the -c command line argument. You can control the shell command through the *cmd* argument to the *terminal_view_open* command. In addition, you can also alter the title of the terminal view to reflect which shell is running.
@@ -106,10 +106,10 @@ When you are done you can close the terminal by closing the view (`ctrl`+`shift`
 The settings are available in the menu: *Preferences->Package Settings->TerminalView*. The settings include options for adjusting colors, scrollback history and similar. Simply copy the settings you want to change into your user settings which are also available in the menu.
 
 ## Color scheme
-The color scheme can be tweaked by copying the default color scheme into the user color scheme file. Both of these files are available in the menu: *Preferences->Package Settings->TerminalView*.
+The color scheme is used for both dynamic coloring (colors set by the shell) and static coloring (colors set by syntax highlighting). Both options can be controlled in the settings. The color scheme itself can be tweaked by copying the default color scheme into the user color scheme file. Both of these files are available in the menu: *Preferences->Package Settings->TerminalView*.
 
 ## Syntax highlighting
-The plugin supports user provided syntax highlighting for static coloring. To use this feature create a *<name>.sublime-syntax* file in your *Packages/User* folder. The *packages* folder can accessed through the menu: *Preferences->Browse Packages*. The content of the file depends entirely on your needs - see https://www.sublimetext.com/docs/3/syntax.html for details. As an example consider the following which highlights the prompt in bash.
+The plugin supports user provided syntax highlighting for static coloring. To use this feature create a *\<name\>.sublime-syntax* file in your *Packages/User* folder. The *packages* folder can accessed through the menu: *Preferences->Browse Packages*. The content of the file depends entirely on your needs - see https://www.sublimetext.com/docs/3/syntax.html for details. As an example consider the following which highlights the prompt in bash.
 
 ```
 %YAML 1.2
@@ -127,13 +127,13 @@ contexts:
       scope: terminalview.black_blue
 ```
 
-The matching could be improved upon but it will do for the purpose of this example. Note that the scope names are chosen so they match with scopes that are already defined in the color scheme. The color scheme is available through the menu: *Preferences->Package Settings->TerminalView*. To change the color scheme see the "color scheme" section above. In this example the syntax file was saved as *bash.sublime-syntax* under the *Packages/User* folder. To use it when opening a bash terminal pass it to the *terminal_view_open* command with the *syntax* argument:
+The matching could be improved upon but it will do for the purpose of this example. Note that the scope names are chosen so they match with scopes that are already defined in the color scheme. To change the color scheme see the "color scheme" section above. In this example the syntax file was saved as *bash.sublime-syntax* under the *Packages/User* folder. To use it when opening a bash terminal pass it to the *terminal_view_open* command with the *syntax* argument:
 
 ```
 { "keys": ["ctrl+alt+t"], "command": "terminal_view_open", "args": {"cmd": "/bin/bash -l", "title": "Bash Terminal", "syntax": "bash.sublime-syntax"}},
 ```
 
-Note that no syntax-files are provided with the plugin at the moment.
+Note that no syntax-files are provided with the plugin at the moment so all users must create their own.
 
 ## Future development
 Development is performed ad-hoc and current plans include:
@@ -145,7 +145,6 @@ Development is performed ad-hoc and current plans include:
 * Support for more shells
 * Support for re-opening old sessions when ST3 is restarted (may not be feasible, investigation needed)
 * QOL shortcut that can find and open filepaths in the terminal window
-* Static syntax highlighting option (user can provide a regex file)
 * Experimentation with Windows support (through WSL)
 
 ## Acknowledgments
