@@ -70,18 +70,21 @@ Similarly, if you want to override some of the default TerminalView keybindings 
 
 Lastly TerminalView also includes a few utility keybindings:
 
-Shortcut | Command | Description
---- | --- | ---
-`ctrl` + `shift` + `c` | terminal_view_copy | Copy the selection/line in the terminal into the clipboard
-`ctrl` + `shift` + `v` | terminal_view_paste | Paste the contents of the clipboard into the terminal
-`alt` + `mouse wheel up` / `mouse wheel down` | terminal_view_scroll | Scroll back/forward in terminal history
-`shift` + `pageup` / `pagedown` | terminal_view_scroll | Scroll back/forward in terminal history
-`ctrl` + `shift` + `t` / `n` | new_file | Open a new file
-`ctrl` + `shift` + `w` / `q` | close | Close the terminal view
-`ctrl` + `shift` + `up` / `down` / `left` / `right` | move | Move the ST3 cursor (not the terminal cursor)
-`ctrl` + `shift` + `home` / `end` | move_to | Move the ST3 cursor to beginning/end of line
+Shortcut | Description
+--- | ---
+`ctrl` + `shift` + `c` | Copy the selection/line in the terminal into the clipboard
+`ctrl` + `shift` + `v` | Paste the contents of the clipboard into the terminal
+`alt` + `mouse wheel up` / `mouse wheel down` | Scroll back/forward in terminal history
+`shift` + `pageup` / `pagedown` | Scroll back/forward in terminal history
+`ctrl` + `shift` + `t` / `n` | Open a new file
+`ctrl` + `shift` + `w` / `q` | Close the terminal view
+`ctrl` + `shift` + `up` / `down` / `left` / `right` | Move the ST3 cursor (not the terminal cursor)
+`ctrl` + `shift` + `home` / `end` | 1Move the ST3 cursor to beginning/end of line
 
 Note that standard ST3 keybindings for selection are **not** shadowed which mean you can use `shift` + `keys` for selection in the terminal in case you prefer to use the keyboard. These keybindings do not move the actual terminal cursor however so whenever the terminal is updated the cursor will snap back to its point of origin.
+
+## Settings
+The settings are available in the menu: *Preferences->Package Settings->TerminalView*. The settings include options for adjusting colors, scrollback history and similar. Simply copy the settings you want to change into your user settings which are also available in the menu.
 
 ## Changing shell
 If you want to use another shell it is highly recommended to do this through bash with the -c command line argument. You can control the shell command through the *cmd* argument to the *terminal_view_open* command. In addition, you can also alter the title of the terminal view to reflect which shell is running.
@@ -102,11 +105,8 @@ but this is **very experimental**. Some future development regarding this is pla
 
 When you are done you can close the terminal by closing the view (`ctrl`+`shift`+`q` or `ctrl`+`shift`+`w` as default) or exiting the shell (by e.g. hitting `ctrl`+`d`).
 
-## Settings
-The settings are available in the menu: *Preferences->Package Settings->TerminalView*. The settings include options for adjusting colors, scrollback history and similar. Simply copy the settings you want to change into your user settings which are also available in the menu.
-
 ## Color scheme
-The color scheme is used for both dynamic coloring (colors set by the shell) and static coloring (colors set by syntax highlighting). Both options can be controlled in the settings. The color scheme itself can be tweaked by copying the default color scheme into the user color scheme file. Both of these files are available in the menu: *Preferences->Package Settings->TerminalView*.
+The color scheme is used for both dynamic coloring (colors set by the shell) and static coloring (colors set by syntax highlighting). The color scheme itself can be tweaked by copying the default color scheme into the user color scheme file. Both of these files are available in the menu: *Preferences->Package Settings->TerminalView*.
 
 ## Syntax highlighting
 The plugin supports user provided syntax highlighting for static coloring. To use this feature create a *\<name\>.sublime-syntax* file in your *Packages/User* folder. The *packages* folder can accessed through the menu: *Preferences->Browse Packages*. The content of the file depends entirely on your needs - see https://www.sublimetext.com/docs/3/syntax.html for details. As an example consider the following which highlights the prompt in bash.
@@ -133,7 +133,7 @@ The matching could be improved upon but it will do for the purpose of this examp
 { "keys": ["ctrl+alt+t"], "command": "terminal_view_open", "args": {"cmd": "/bin/bash -l", "title": "Bash Terminal", "syntax": "bash.sublime-syntax"}},
 ```
 
-Note that no syntax-files are provided with the plugin at the moment so all users must create their own.
+There are currently no syntax-files provided with the plugin so users must create their own. Note that any colors set by shell (except the black/white default) override colors set by the syntax highlighting.
 
 ## Future development
 Development is performed ad-hoc and current plans include:
