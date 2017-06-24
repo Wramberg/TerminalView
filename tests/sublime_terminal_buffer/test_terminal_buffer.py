@@ -84,7 +84,7 @@ class terminal_buffer(unittest.TestCase):
 
         rows, cols = buf.view_size()
         self.assertEqual(rows, 20)
-        self.assertEqual(cols, 58)  # Note the module subtracts two to avoid the edge
+        self.assertEqual(cols, 57)  # Note the module subtracts 3 to avoid horizontal scrolling
 
     def test_keypress_callback(self):
         # Set up test view

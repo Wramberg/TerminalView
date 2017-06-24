@@ -95,7 +95,7 @@ class SublimeTerminalBuffer():
         if pixel_per_line == 0 or pixel_per_char == 0:
             return (0, 0)
 
-        nb_columns = int(pixel_width / pixel_per_char) - 2
+        nb_columns = int(pixel_width / pixel_per_char) - 3
         if nb_columns < 10:
             nb_columns = 10
 
