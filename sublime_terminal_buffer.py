@@ -197,6 +197,9 @@ class TerminalViewUpdate(sublime_plugin.TextCommand):
         # Update dirty lines in buffer if there are any
         dirty_lines = self.view.terminal_view_emulator.dirty_lines()
         if len(dirty_lines) > 0:
+            # Reset viewport when data is inserted
+            self._update_viewport_position()
+
             # Invalidate the last cursor position when dirty lines are updated
             self.view.terminal_view_last_cursor_pos = None
 
@@ -221,6 +224,9 @@ class TerminalViewUpdate(sublime_plugin.TextCommand):
         self._update_cursor()
 
         self.view.terminal_view_last_update = time.time()
+
+    def _update_viewport_position(self):
+        self.view.set_viewport_position((0, 0), animate=False)
 
     def _update_scrolling(self):
         if self.view.terminal_view_scroll is not None:
