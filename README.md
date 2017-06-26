@@ -135,6 +135,9 @@ The matching could be improved upon but it will do for the purpose of this examp
 
 There are currently no syntax-files provided with the plugin so users must create their own. Note that any colors set by shell (except the black/white default) override colors set by the syntax highlighting.
 
+## Project switching and ST3 restarts
+When switching projects or restarting ST3 the plugin restarts all terminals views. Unfortunately, there is no obvious way of restoring earlier sessions so the views are completely reset.
+
 ## Future development
 Development is performed ad-hoc and current plans include:
 
@@ -143,7 +146,6 @@ Development is performed ad-hoc and current plans include:
 * Support for "editor" mode where cursor can move freely and standard ST3 keybindings can be used
 * 256 color support
 * Support for more shells
-* Support for re-opening old sessions when ST3 is restarted (may not be feasible, investigation needed)
 * QOL shortcut that can find and open filepaths in the terminal window
 * Experimentation with Windows support (through WSL)
 

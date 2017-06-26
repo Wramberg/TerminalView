@@ -84,6 +84,12 @@ class TerminalViewCore(sublime_plugin.TextCommand):
         self._shell = linux_pty.LinuxPty(self._cmd.split(), self._cwd)
         self._shell_is_running = True
 
+        # Save the command args in view settings so it can restarted when ST3 is
+        # restarted (or when changing back to a project that had a terminal view
+        # open)
+        args = {"cmd": cmd, "title": title, "cwd": cwd, "syntax": syntax}
+        self.view.settings().set("terminal_view_core_args", args)
+
         # Start the main loop
         threading.Thread(target=self._main_update_loop).start()
 
@@ -108,11 +114,21 @@ class TerminalViewCore(sublime_plugin.TextCommand):
         # 30 frames per second should be responsive enough
         ideal_delta = 1.0 / 30.0
         current = time.time()
-        while not self._stopped():
+        while True:
             self._poll_shell_output()
-            self._refresh_terminal_view()
-            self._check_for_screen_resize()
-            self._check_if_terminal_closed_or_shell_exited()
+
+            if self._terminal_buffer.update_view() is False:
+                # Leave view open as we should only get an update if we are
+                # reloading the plugin
+                self._stop(close_view=False)
+                break
+
+            self._resize_screen_if_needed()
+
+            if (not self._terminal_buffer.is_open()) or (not self._shell.is_running()):
+                self._stop()
+                break
+
             previous = current
             current = time.time()
             actual_delta = current - previous
@@ -130,13 +146,7 @@ class TerminalViewCore(sublime_plugin.TextCommand):
             self._console_logger.log("Got %u bytes of data from shell" % (len(data), ))
             self._terminal_buffer.insert_data(data)
 
-    def _refresh_terminal_view(self):
-        """
-        Update the terminal view so its showing the latest data.
-        """
-        self._terminal_buffer.update_view()
-
-    def _check_for_screen_resize(self):
+    def _resize_screen_if_needed(self):
         """
         Check if the terminal view was resized. If so update the screen size of
         the terminal and notify the shell.
@@ -155,23 +165,11 @@ class TerminalViewCore(sublime_plugin.TextCommand):
             self._shell.update_screen_size(self._terminal_rows, self._terminal_columns)
             self._terminal_buffer.update_terminal_size(self._terminal_rows, self._terminal_columns)
 
-    def _check_if_terminal_closed_or_shell_exited(self):
-        """
-        Check if the terminal was closed or the shell exited. If so stop
-        everything.
-        """
-        self._terminal_buffer_is_open = self._terminal_buffer.is_open()
-        self._shell_is_running = self._shell.is_running()
-
-        if (not self._terminal_buffer_is_open) or (not self._shell_is_running):
-            self._stop()
-            return
-
-    def _stop(self):
+    def _stop(self, close_view=True):
         """
         Stop the terminal and close everything down.
         """
-        if self._terminal_buffer_is_open:
+        if self._terminal_buffer_is_open and close_view:
             self._terminal_buffer.close()
             self._terminal_buffer_is_open = False
 
@@ -179,14 +177,28 @@ class TerminalViewCore(sublime_plugin.TextCommand):
             self._shell.stop()
             self._shell_is_running = False
 
-    def _stopped(self):
-        """
-        Check if the terminal or shell are stopped.
-        """
-        if not self._shell_is_running:
-            return True
 
-        if not self._terminal_buffer_is_open:
-            return True
+def plugin_loaded():
+    # When the plugin gets loaded everything should be dead so wait a bit to
+    # make sure views are ready, then try to restart all sessions.
+    sublime.set_timeout(restart_all_terminal_view_sessions, 100)
 
-        return False
+
+def restart_all_terminal_view_sessions():
+    win = sublime.active_window()
+    for view in win.views():
+        restart_terminal_view_session(view)
+
+
+class ProjectSwitchWatcher(sublime_plugin.EventListener):
+    def on_load(self, view):
+        # On load is called on old terminal views when switching between projects
+        restart_terminal_view_session(view)
+
+
+def restart_terminal_view_session(view):
+    settings = view.settings()
+    if settings.has("terminal_view_core_args"):
+        view.run_command("terminal_view_clear")
+        args = settings.get("terminal_view_core_args")
+        view.run_command("terminal_view_core", args=args)
