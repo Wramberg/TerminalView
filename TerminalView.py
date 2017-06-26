@@ -21,8 +21,7 @@ class TerminalViewOpen(sublime_plugin.WindowCommand):
     class per sublime window. Once a terminal view has been opened the
     TerminalViewCore instance for that view is called to handle everything.
     """
-    def run(self, cmd="/bin/bash -l", title="Terminal",
-            cwd="${project_path:${folder:${file_path}}}", syntax=None):
+    def run(self, cmd="/bin/bash -l", title="Terminal", cwd=None, syntax=None):
         """
         Open a new terminal view
 
@@ -38,9 +37,16 @@ class TerminalViewOpen(sublime_plugin.WindowCommand):
             sublime.error_message("TerminalView: Unsupported OS")
             return
 
-        cwd = sublime.expand_variables(cwd, self.window.extract_variables())
-        if not cwd:
-            cwd = os.environ["HOME"]
+        if cwd is None:
+            st_vars = self.window.extract_variables()
+            if "file_path" in st_vars:
+                cwd = st_vars["file_path"]
+            elif "folder" in st_vars:
+                cwd = st_vars["folder"]
+            elif "HOME" in os.environ:
+                cwd = os.environ["HOME"]
+            else:
+                cwd = "/"
 
         args = {"cmd": cmd, "title": title, "cwd": cwd, "syntax": syntax}
         self.window.new_file().run_command("terminal_view_core", args=args)
