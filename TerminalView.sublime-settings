@@ -1,9 +1,8 @@
 {
   // Show dynamic colors (colors set by the shell) in the terminal view. This
-  // causes a minor increase in terminal response time, hence its disabled by
-  // default. Unless you are using a 20 year old PC it should be fine to enable
-  // though.
-  "terminal_view_show_colors": false,
+  // causes a minor increase in terminal response time so try disabling it if
+  // you are experiencing any problems.
+  "terminal_view_show_colors": true,
 
   // Number of lines to buffer in history for scrollback
   "terminal_view_scroll_history": 1000,
