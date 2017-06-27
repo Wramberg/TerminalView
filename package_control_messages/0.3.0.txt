@@ -1,0 +1,12 @@
+TerminalView 0.3.0
+==================
+TerminalView was just updated with the following changes:
+
+* Support for copying selection in terminal into clipboard
+* Support for pasting contents from clipboard into terminal
+* Keybindings for moving ST3 cursor to facilitate keyboard-driven selection
+* Keybindings for scrolling with mouse wheel
+* Support for syntax highlighting using user-provided syntax file
+
+Check out the README for details. Enjoy!
+

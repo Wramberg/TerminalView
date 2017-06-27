@@ -1,0 +1,18 @@
+
+  _______                      _                _ __      __ _
+ |__   __|                    (_)              | |\ \    / /(_)
+    | |  ___  _ __  _ __ ___   _  _ __    __ _ | | \ \  / /  _   ___ __      __
+    | | / _ \| '__|| '_ ` _ \ | || '_ \  / _` || |  \ \/ /  | | / _ \\ \ /\ / /
+    | ||  __/| |   | | | | | || || | | || (_| || |   \  /   | ||  __/ \ V  V /
+    |_| \___||_|   |_| |_| |_||_||_| |_| \__,_||_|    \/    |_| \___|  \_/\_/
+
+                     Thank you for trying out TerminalView.
+               If you like it, don't forget to star it on GitHub.
+
+                    https://github.com/Wramberg/TerminalView
+                https://packagecontrol.io/packages/TerminalView
+
+  If you don't, feel free to share any problems you may have had in the issues.
+
+To get started check out the README. You can find it on GitHub, Package Control
+        or in the ST3 menu: Preferences->Package Settings->TerminalView.
