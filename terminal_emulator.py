@@ -227,7 +227,11 @@ def convert_pyte_buffer_to_colormap(buffer, lines):
         if last_fg == "default":
             last_fg = "white"
 
-        last_color = (last_bg, last_fg)
+        if line[0].reverse:
+            last_color = (last_fg, last_bg)
+        else:
+            last_color = (last_bg, last_fg)
+
         last_index = 0
         field_length = 0
 
@@ -245,7 +249,11 @@ def convert_pyte_buffer_to_colormap(buffer, lines):
             else:
                 fg = char.fg
 
-            color = (bg, fg)
+            if char.reverse:
+                color = (fg, bg)
+            else:
+                color = (bg, fg)
+
             if last_color == color:
                 field_length = field_length + 1
             else:
