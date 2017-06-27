@@ -140,6 +140,8 @@ class PyteBufferStubFactory():
 
 
 class CharStub():
-    def __init__(self, bg, fg):
+    def __init__(self, bg, fg, reverse=False):
         self.bg = bg
         self.fg = fg
+        self.reverse = reverse
+
