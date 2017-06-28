@@ -79,7 +79,7 @@ Shortcut | Description
 `ctrl` + `shift` + `t` / `n` | Open a new file
 `ctrl` + `shift` + `w` / `q` | Close the terminal view
 `ctrl` + `shift` + `up` / `down` / `left` / `right` | Move the ST3 cursor (not the terminal cursor)
-`ctrl` + `shift` + `home` / `end` | 1Move the ST3 cursor to beginning/end of line
+`ctrl` + `shift` + `home` / `end` | Move the ST3 cursor to beginning/end of line
 
 Note that standard ST3 keybindings for selection are **not** shadowed which mean you can use `shift` + `keys` for selection in the terminal in case you prefer to use the keyboard. These keybindings do not move the actual terminal cursor however so whenever the terminal is updated the cursor will snap back to its point of origin.
 
@@ -135,8 +135,8 @@ The matching could be improved upon but it will do for the purpose of this examp
 
 There are currently no syntax-files provided with the plugin so users must create their own. Note that any colors set by shell (except the black/white default) override colors set by the syntax highlighting.
 
-## Project switching and ST3 restarts
-When switching projects or restarting ST3 the plugin restarts all terminals views. Unfortunately, there is no obvious way of restoring earlier sessions so the views are completely reset.
+## Project switching and ST3 startup
+When switching projects or (re)starting ST3 the plugin restarts all terminals views. Unfortunately, there is no obvious way of restoring earlier sessions so the views are completely reset.
 
 ## Future development
 Development is performed ad-hoc and current plans include:
