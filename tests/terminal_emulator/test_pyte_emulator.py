@@ -119,10 +119,54 @@ class pyte_buffer_to_color_map(unittest.TestCase):
 
         self.assertDictEqual(color_map, expected)
 
+    def test_reverse_default_colors(self):
+        buffer_factory = PyteBufferStubFactory(1, 13)
+        buffer_factory.set_color(0, 0, "default", "default", True)
+        buffer_factory.set_color(0, 1, "default", "default", True)
+        buffer_factory.set_color(0, 2, "default", "default", True)
+
+        buffer_factory.set_color(0, 3, "red", "default", True)
+        buffer_factory.set_color(0, 4, "red", "default", True)
+        buffer_factory.set_color(0, 5, "red", "default", True)
+
+        buffer_factory.set_color(0, 6, "green", "default", True)
+        buffer_factory.set_color(0, 7, "green", "default", True)
+        buffer_factory.set_color(0, 8, "green", "default", True)
+
+        buffer_factory.set_color(0, 9, "cyan", "default", True)
+        buffer_factory.set_color(0, 10, "cyan", "default", True)
+        buffer_factory.set_color(0, 11, "cyan", "default", True)
+
+        pyte_buffer = buffer_factory.produce()
+        color_map = terminal_emulator.convert_pyte_buffer_to_colormap(pyte_buffer, [0])
+
+        expected = {
+            0: {
+                0: {
+                    'field_length': 3,
+                    'color': ('white', 'black')
+                },
+                9: {
+                    'field_length': 3,
+                    'color': ('white', 'cyan')
+                },
+                3: {
+                    'field_length': 3,
+                    'color': ('white', 'red')
+                },
+                6: {
+                    'field_length': 3,
+                    'color': ('white', 'green')
+                }
+            }
+        }
+
+        self.assertDictEqual(color_map, expected)
+
 
 class PyteBufferStubFactory():
     def __init__(self, nb_lines, nb_cols):
-        default_char = CharStub("default", "default")
+        default_char = CharStub("default", "default", reverse=False)
 
         self.buffer = []
         for i in range(nb_lines):
@@ -132,8 +176,8 @@ class PyteBufferStubFactory():
                 line.append(default_char)
             self.buffer.append(line)
 
-    def set_color(self, line, col, bg, fg):
-        self.buffer[line][col] = CharStub(bg, fg)
+    def set_color(self, line, col, bg, fg, reverse=False):
+        self.buffer[line][col] = CharStub(bg, fg, reverse=reverse)
 
     def produce(self):
         return self.buffer
@@ -144,4 +188,3 @@ class CharStub():
         self.bg = bg
         self.fg = fg
         self.reverse = reverse
-
