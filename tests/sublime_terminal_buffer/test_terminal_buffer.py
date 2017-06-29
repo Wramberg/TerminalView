@@ -84,7 +84,7 @@ class terminal_buffer(unittest.TestCase):
 
         rows, cols = buf.view_size()
         self.assertEqual(rows, 20)
-        self.assertEqual(cols, 60)
+        self.assertEqual(cols, 59)  # Note buffer logic subtracts 1
 
     def test_keypress_callback(self):
         # Set up test view

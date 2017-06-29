@@ -2,10 +2,11 @@ TerminalView 0.4.0
 ==================
 TerminalView was just updated with the following changes:
 
+* Improved resizing functionality (no more cursor reset on resize due to e.g. panel)
 * TerminalView sessions are now restarted upon ST3 startup
 * TerminalView sessions are now restarted when switching projects (cannot resume unfortunately)
 * ST3 viewport is now reset when terminal is updated (scolls back to original position)
-* Improved 16 color support (256 color support is still in development)
+* Improved color support (256 color support is still in development)
 * Various minor tweaks
 
 Check out the README for details. Enjoy!

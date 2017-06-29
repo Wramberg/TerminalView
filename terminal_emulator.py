@@ -26,7 +26,8 @@ class PyteTerminalEmulator():
 
     def resize(self, lines, cols):
         self._screen.scroll_to_bottom()
-        self._screen.dirty.update(range(lines))
+        dirty_lines = max(lines, self._screen.lines)
+        self._screen.dirty.update(range(dirty_lines))
         return self._screen.resize(lines, cols)
 
     def prev_page(self):
@@ -192,6 +193,43 @@ class CustomHistoryScreen(pyte.DiffScreen):
             ]
 
             self.dirty = set(range(self.lines))
+
+    def resize(self, lines=None, columns=None):
+        print(lines, self.lines)
+        lines = lines or self.lines
+        columns = columns or self.columns
+
+        # First resize the lines:
+        line_diff = self.lines - lines
+        print(line_diff)
+
+        # a) if the current display size is less than the requested
+        #    size, add lines to the bottom.
+        if line_diff < 0:
+            self.buffer.extend(take(self.columns, self.default_line)
+                               for _ in range(line_diff, 0))
+        # b) if the current display size is greater than requested
+        #    size, take lines off the top.
+        elif line_diff > 0:
+            self.buffer[:line_diff] = ()
+
+        # Then resize the columns:
+        col_diff = self.columns - columns
+
+        # a) if the current display size is less than the requested
+        #    size, expand each line to the new size.
+        if col_diff < 0:
+            for y in range(lines):
+                self.buffer[y].extend(take(abs(col_diff), self.default_line))
+        # b) if the current display size is greater than requested
+        #    size, trim each line from the right to the new size.
+        elif col_diff > 0:
+            for line in self.buffer:
+                del line[columns:]
+
+        self.lines, self.columns = lines, columns
+        self.margins = Margins(0, self.lines - 1)
+        self.ensure_bounds(use_margins=True)
 
 
 def take(n, iterable):

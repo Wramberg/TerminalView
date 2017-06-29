@@ -116,15 +116,14 @@ class TerminalViewCore(sublime_plugin.TextCommand):
         current = time.time()
         while True:
             self._poll_shell_output()
-
-            if self._terminal_buffer.update_view() is False:
+            success = self._terminal_buffer.update_view()
+            if not success:
                 # Leave view open as we should only get an update if we are
                 # reloading the plugin
                 self._stop(close_view=False)
                 break
 
             self._resize_screen_if_needed()
-
             if (not self._terminal_buffer.is_open()) or (not self._shell.is_running()):
                 self._stop()
                 break
