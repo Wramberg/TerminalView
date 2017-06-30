@@ -2,6 +2,50 @@ import unittest
 
 from TerminalView import terminal_emulator
 
+class terminal_resize(unittest.TestCase):
+    def test_lines_resize(self):
+        nb_cols = 20
+        nb_lines = 6
+        emulator = terminal_emulator.PyteTerminalEmulator(cols=nb_cols, lines=nb_lines, history=100,
+                                                          ratio=10.5)
+        lines = []
+        lines.append("line 1")
+        lines.append("line TWO")
+        lines.append("line number three")
+
+        for line in lines:
+            emulator.feed((line + "\r\n").encode("utf8"))
+
+        display = emulator.display()
+        self.assertEqual(len(display), nb_lines)
+        for i in range(len(lines)):
+            self.assertEqual(display[i], lines[i].ljust(nb_cols))
+
+        # Remove two lines - we expect bottom ones to be removed since they are
+        # blank
+        nb_lines = 4
+        emulator.resize(nb_lines, nb_cols)
+        display = emulator.display()
+        self.assertEqual(len(display), nb_lines)
+        for i in range(len(lines)):
+            self.assertEqual(display[i], lines[i].ljust(nb_cols))
+
+        # Remove another line
+        nb_lines = 3
+        emulator.resize(nb_lines, nb_cols)
+        display = emulator.display()
+        self.assertEqual(len(display), nb_lines)
+        for i in range(len(lines)):
+            self.assertEqual(display[i], lines[i].ljust(nb_cols))
+
+        # Remove another - now we expect the top line to be removed
+        nb_lines = 2
+        emulator.resize(nb_lines, nb_cols)
+        display = emulator.display()
+        self.assertEqual(len(display), nb_lines)
+        for i in range(len(display)):
+            self.assertEqual(display[i], lines[i+1].ljust(nb_cols))
+
 
 class pyte_buffer_to_color_map(unittest.TestCase):
     def test_no_colors(self):

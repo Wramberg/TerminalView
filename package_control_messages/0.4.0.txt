@@ -8,6 +8,7 @@ TerminalView was just updated with the following changes:
 * Dynamic colors (colors set by the shell) are now enabled by default
 * ST3 viewport is now reset when terminal is updated (scolls back to original position)
 * Improved color support (256 color support is still in development)
+* Package control messages are now included with every update
 * Various minor tweaks
 
 Check out the README for details. Enjoy!
