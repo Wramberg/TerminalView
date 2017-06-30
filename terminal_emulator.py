@@ -195,13 +195,11 @@ class CustomHistoryScreen(pyte.DiffScreen):
             self.dirty = set(range(self.lines))
 
     def resize(self, lines=None, columns=None):
-        print(lines, self.lines)
         lines = lines or self.lines
         columns = columns or self.columns
 
         # First resize the lines:
         line_diff = self.lines - lines
-        print(line_diff)
 
         # a) if the current display size is less than the requested
         #    size, add lines to the bottom.
@@ -211,7 +209,14 @@ class CustomHistoryScreen(pyte.DiffScreen):
         # b) if the current display size is greater than requested
         #    size, take lines off the top.
         elif line_diff > 0:
-            self.buffer[:line_diff] = ()
+            # JW tweak - if we only have spaces in the bottom of the screen
+            # remove those lines instead
+            disp = self.display[-line_diff:]
+            contents = "".join(disp)
+            if contents.isspace():
+                self.buffer[-line_diff:] = ()
+            else:
+                self.buffer[:line_diff] = ()
 
         # Then resize the columns:
         col_diff = self.columns - columns
@@ -229,6 +234,8 @@ class CustomHistoryScreen(pyte.DiffScreen):
 
         self.lines, self.columns = lines, columns
         self.margins = Margins(0, self.lines - 1)
+
+        # JW tweak - move cursor upwards if its out of bounds do not reset it
         self.ensure_bounds(use_margins=True)
 
 
