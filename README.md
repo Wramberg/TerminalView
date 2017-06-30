@@ -4,11 +4,11 @@
 
 A Linux/macOS plugin for Sublime Text 3 that allows for terminals inside editor views. The plugin uses a pseudo-terminal to start the underlying shell which means it supports
 
-* Interactive applications
+* Interactive applications (less, man, ipython, ssh, etc.)
 * Auto-completion
 * Terminal shortcuts (`ctrl`+`c`, etc.)
 * Password prompts
-* etc.
+* Basically everything you would expect from a terminal
 
 **Note that you may have to insert some keybindings in your user keymap for everything to work - see the keybindings section for details.**
 
@@ -22,7 +22,7 @@ To run this plugin you need
 * bash (this is not required but recommended, see "Changing shell" below for details)
 
 ## Installation
-To install from https://packagecontrol.io/
+To install from https://packagecontrol.io/packages/TerminalView
 
 1. Open the command palette (`ctrl`+`shift`+`p` by default) and find "Package Control: Install Package"
 2. Search for TerminalView and hit `enter` to install.
