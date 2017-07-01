@@ -10,7 +10,7 @@ A Linux/macOS plugin for Sublime Text 3 that allows for terminals inside editor 
 * Password prompts
 * Basically everything you would expect from a terminal
 
-**Note that you may have to insert some keybindings in your user keymap for everything to work - see the keybindings section for details.**
+**Note, if you encounter any issues please check the "Common problems" section below for a solution.**
 
 ![example.gif](https://raw.githubusercontent.com/Wramberg/TerminalView/master/example.gif "TerminalView Demonstration")
 
@@ -137,6 +137,15 @@ There are currently no syntax-files provided with the plugin so users must creat
 
 ## Project switching and ST3 startup
 When switching projects or (re)starting ST3 the plugin restarts all terminals views. Unfortunately, there is no obvious way of restoring earlier sessions so the views are completely reset.
+
+## Common problems
+List of common problems you may encounter when using this plugin.
+
+* **A keybinding is not working even though it is listed in the keybindings section**
+This is most likely because you have the key bound to something else in your user keymap file. To make it work find the missing keybinding in the TerminalView keymap and copy it to your user keymap. For details see the keybindings section above.
+
+* **The terminal is working but prints weird sequences like 133;C;**
+Ensure you do not have a bash_profile file or similar that changes the value of the `TERM` environment variable. This is set to "linux" by the plugin and must stay that way. You can check it by calling `env | grep TERM` inside the terminal view in ST3. If the `TERM` is correct feel free to open an issue for further investigation.
 
 ## Future development
 Development is performed ad-hoc and current plans include:
