@@ -142,9 +142,11 @@ When switching projects or (re)starting ST3 the plugin restarts all terminals vi
 List of common problems you may encounter when using this plugin.
 
 * **A keybinding is not working even though it is listed in the keybindings section**
+
   This is most likely because you have the key bound to something else in your user keymap file. To make it work find the missing keybinding in the TerminalView keymap and copy it to your user keymap. For details see the keybindings section above.
 
 * **The terminal is working but prints weird sequences like 133;C;**
+
   Ensure you do not have a bash_profile file or similar that changes the value of the `TERM` environment variable. This is set to "linux" by the plugin and must stay that way. You can check it by calling `env | grep TERM` inside the terminal view in ST3. If the `TERM` is correct feel free to open an issue for further investigation.
 
 ## Future development
