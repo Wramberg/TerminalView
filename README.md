@@ -141,13 +141,14 @@ When switching projects or (re)starting ST3 the plugin restarts all terminals vi
 ## Common problems
 List of common problems you may encounter when using this plugin.
 
-* **A keybinding is not working even though it is listed in the keybindings section**
+#### A keybinding is not working even though it is listed in the keybindings section
+This is most likely because you have the key bound to something else in your user keymap file. To make it work find the missing keybinding in the TerminalView keymap and copy it to your user keymap. For details see the keybindings section above.
 
-  This is most likely because you have the key bound to something else in your user keymap file. To make it work find the missing keybinding in the TerminalView keymap and copy it to your user keymap. For details see the keybindings section above.
+#### The terminal is working but prints weird sequences like 133;C;
+Ensure you do not have a bash_profile file or similar that changes the value of the `TERM` environment variable. This is set to "linux" by the plugin and must stay that way. You can check it by calling `env | grep TERM` inside the terminal view in ST3. If the `TERM` is correct feel free to open an issue for further investigation.
 
-* **The terminal is working but prints weird sequences like 133;C;**
-
-  Ensure you do not have a bash_profile file or similar that changes the value of the `TERM` environment variable. This is set to "linux" by the plugin and must stay that way. You can check it by calling `env | grep TERM` inside the terminal view in ST3. If the `TERM` is correct feel free to open an issue for further investigation.
+#### The terminal is sluggish and/or uses a lot of memory
+You may have other plugins that conflict with TerminalView. TerminalView does a lot of modifications to the buffer which can conflict with plugins like e.g. GotoLastEditEnhanced. In this particular case a history of all modifications are saved causing unbound memory usage. Please test TerminalView in isolation to see if the issue persists.
 
 ## Future development
 Development is performed ad-hoc and current plans include:
