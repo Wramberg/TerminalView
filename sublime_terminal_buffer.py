@@ -20,8 +20,7 @@ class SublimeTerminalBuffer():
         self._view.settings().set("highlight_line", False)
         self._view.settings().set("auto_complete_commit_on_tab", False)
         self._view.settings().set("draw_centered", False)
-        # We should never wrap anyway and this removes the horizontal scrollbar
-        self._view.settings().set("word_wrap", True)
+        self._view.settings().set("word_wrap", False)
         self._view.settings().set("auto_complete", False)
         self._view.settings().set("draw_white_space", "none")
         self._view.settings().set("draw_indent_guides", False)
