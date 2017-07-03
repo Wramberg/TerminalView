@@ -1,5 +1,5 @@
-TerminalView 0.3.0
-==================
+0.3.0
+-----
 TerminalView was just updated with the following changes:
 
 * Support for copying selection in terminal into clipboard

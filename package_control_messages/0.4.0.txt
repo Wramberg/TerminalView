@@ -1,5 +1,5 @@
-TerminalView 0.4.0
-==================
+0.4.0
+-----
 TerminalView was just updated with the following changes:
 
 * TerminalView sessions are now restarted upon ST3 startup

@@ -1,11 +1,8 @@
-0.2.0
+0.4.1
 -----
 TerminalView was just updated with the following changes:
 
-* Support for scrolling
-* Pyte update to 0.5.2
-* Fix for #12
-* Various optimizations
+* Fix for package control messages
 
 Check out the README for details. Enjoy!
 
