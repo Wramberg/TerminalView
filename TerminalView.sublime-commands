@@ -4,11 +4,30 @@
     "command": "terminal_view_open",
     "args"   : {"title": "Terminal (bash)", "cmd": "/bin/bash -l"},
   },
-
   // Example of a new command that can be added to the pallete
   // {
   //   "caption": "Open Terminal View - IPython",
   //   "command": "terminal_view_open",
   //   "args"   : {"title": "Terminal (IPython)", "cmd": "/bin/bash -l -c /usr/bin/ipython},
   // },
+  {
+    "caption": "Open Terminal View Settings",
+    "command": "edit_settings",
+    "args": {"base_file": "${packages}/TerminalView/TerminalView.sublime-settings", "default": "{}"},
+  },
+  {
+    "caption": "Open Terminal View Color Scheme",
+    "command": "edit_settings",
+    "args": {"base_file": "${packages}/TerminalView/TerminalView.hidden-tmTheme"},
+  },
+  {
+    "caption": "Open Terminal View Readme",
+    "command": "open_file",
+    "args": {"file": "${packages}/TerminalView/README.md"},
+  },
+  {
+    "caption": "Open Terminal View Keybindings",
+    "command": "edit_settings",
+    "args": {"base_file": "${packages}/TerminalView/Default.sublime-keymap", "default": "[]"},
+  },
 ]
