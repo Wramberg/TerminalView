@@ -2,4 +2,5 @@
 -----
 TerminalView was just updated with the following changes:
 
-* Fix for wrapping error
+* Keybindings, settings, etc. are now available through the command palette
+* Fix for ST3 text wrapping error
