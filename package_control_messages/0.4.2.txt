@@ -1,5 +1,5 @@
-0.4.1
+0.4.2
 -----
 TerminalView was just updated with the following changes:
 
-* Fix for package control messages
+* Fix for wrapping error
