@@ -34,7 +34,6 @@ class SublimeTerminalBuffer():
         settings = sublime.load_settings('TerminalView.sublime-settings')
         self._view.terminal_view_logger = logger
         self._view.terminal_view_show_colors = settings.get("terminal_view_show_colors", False)
-        self._view.terminal_view_last_cursor_pos = None
 
         # Flag to request scrolling in view (from one thread to another)
         self._view.terminal_view_scroll = None
@@ -185,6 +184,26 @@ class TerminalViewPaste(sublime_plugin.TextCommand):
                 keypress_cb(char)
 
 
+class TerminalViewReporter(sublime_plugin.EventListener):
+    def on_query_context(self, view, key, operator, operand, match_all):
+        if key == "terminal_view_needs_refocus":
+            cursor_pos = view.settings().get("terminal_view_last_cursor_pos")
+            if cursor_pos:
+                if len(view.sel()) != 1 or not view.sel()[0].empty():
+                    return operand
+
+                row, col = view.rowcol(view.sel()[0].end())
+                return (row == cursor_pos[0] and col == cursor_pos[1]) != operand
+
+
+class TerminalViewRefocus(sublime_plugin.TextCommand):
+    def run(self, _):
+        cursor_pos = self.view.settings().get("terminal_view_last_cursor_pos")
+        tp = self.view.text_point(cursor_pos[0], cursor_pos[1])
+        self.view.sel().clear()
+        self.view.sel().add(sublime.Region(tp, tp))
+
+
 class TerminalViewUpdate(sublime_plugin.TextCommand):
     def run(self, edit):
         # When reloading the plugin the view sometimes becomes completely
@@ -202,7 +221,7 @@ class TerminalViewUpdate(sublime_plugin.TextCommand):
             self._update_viewport_position()
 
             # Invalidate the last cursor position when dirty lines are updated
-            self.view.terminal_view_last_cursor_pos = None
+            self.view.settings().set("terminal_view_last_cursor_pos", None)
 
             # Generate color map
             color_map = {}
@@ -248,13 +267,13 @@ class TerminalViewUpdate(sublime_plugin.TextCommand):
 
     def _update_cursor(self):
         cursor_pos = self.view.terminal_view_emulator.cursor()
-        if self.view.terminal_view_last_cursor_pos == cursor_pos:
+        last_cursor_pos = self.view.settings().get("terminal_view_last_cursor_pos")
+        if last_cursor_pos and last_cursor_pos[0] == cursor_pos[0] and last_cursor_pos[1] == cursor_pos[1]:
             return
-
         tp = self.view.text_point(cursor_pos[0], cursor_pos[1])
         self.view.sel().clear()
         self.view.sel().add(sublime.Region(tp, tp))
-        self.view.terminal_view_last_cursor_pos = cursor_pos
+        self.view.settings().set("terminal_view_last_cursor_pos", cursor_pos)
 
     def _update_lines(self, edit, dirty_lines, color_map):
         self.view.set_read_only(False)
