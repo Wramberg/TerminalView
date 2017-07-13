@@ -29,6 +29,7 @@
     {"keys": ["end"], "command": "terminal_view_keypress", "args": {"key": "end"}, "context": [{"key": "setting.terminal_view"}]},
 
     {"keys": ["escape"], "command": "terminal_view_keypress", "args": {"key": "escape"}, "context": [{"key": "setting.terminal_view"}]},
+    {"keys": ["escape"], "command": "terminal_view_refocus", "context": [{"key": "setting.terminal_view"}, {"key": "terminal_view_needs_refocus"}]},
     {"keys": ["tab"], "command": "terminal_view_keypress", "args": {"key": "tab"}, "context": [{"key": "setting.terminal_view"}]},
     {"keys": ["space"], "command": "terminal_view_keypress", "args": {"key": "space"}, "context": [{"key": "setting.terminal_view"}]},
     {"keys": ["backspace"], "command": "terminal_view_keypress", "args": {"key": "backspace"}, "context": [{"key": "setting.terminal_view"}]},
