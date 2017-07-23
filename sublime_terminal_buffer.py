@@ -35,6 +35,10 @@ class SublimeTerminalBuffer():
         self._view.terminal_view_logger = logger
         self._view.terminal_view_show_colors = settings.get("terminal_view_show_colors", False)
 
+        # Get configured margins
+        self._right_margin = settings.get("terminal_view_right_margin", 3)
+        self._bottom_margin = settings.get("terminal_view_bottom_margin", 0)
+
         # Flag to request scrolling in view (from one thread to another)
         self._view.terminal_view_scroll = None
 
@@ -99,11 +103,11 @@ class SublimeTerminalBuffer():
             return (0, 0)
 
         # Subtract one to avoid any wrapping issues
-        nb_columns = int(pixel_width / pixel_per_char) - 1
+        nb_columns = int(pixel_width / pixel_per_char) - self._right_margin
         if nb_columns < 1:
             nb_columns = 1
 
-        nb_rows = int(pixel_height / pixel_per_line)
+        nb_rows = int(pixel_height / pixel_per_line) - self._bottom_margin
         if nb_rows < 1:
             nb_rows = 1
 

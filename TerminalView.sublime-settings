@@ -4,13 +4,23 @@
   // you are experiencing any problems.
   "terminal_view_show_colors": true,
 
-  // Number of lines to buffer in history for scrollback
+  // Number of lines to buffer in history for scrollback.
   "terminal_view_scroll_history": 1000,
 
   // Percentage of page that is scrolled (1.0 corresponds to an entire page
-  // scroll)
+  // scroll).
   "terminal_view_scroll_ratio": 0.5,
 
-  // Enable/disable debug printing to the console
+  // Amount of character margin on the right-hand side of the terminal view.
+  // Tweak this if you want to avoid the horizontal scrollbar showing in the
+  // view. Defaults to a margin of 3 characters as this avoid the horizontal
+  // scrollbar in the default theme.
+  "terminal_view_right_margin": 3,
+
+  // Same as above but applies to the bottom of the view instead. Defaults to 0
+  // lines of margin,
+  "terminal_view_bottom_margin": 0,
+
+  // Enable/disable debug printing to the console.
   "terminal_view_print_debug": false,
 }
