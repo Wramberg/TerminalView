@@ -81,7 +81,7 @@ Shortcut | Description
 --- | ---
 `ctrl` + `shift` + `c` | Copy the selection/line in the terminal into the clipboard
 `ctrl` + `shift` + `v` | Paste the contents of the clipboard into the terminal
-`alt` + `mouse wheel up` / `mouse wheel down` | Scroll back/forward in terminal history
+`alt` + `mouse wheel up` / `mouse wheel down` | Scroll back/forward in terminal history (only works on Linux - see #28 for details)
 `shift` + `pageup` / `pagedown` | Scroll back/forward in terminal history
 `ctrl` + `shift` + `t` / `n` | Open a new file
 `ctrl` + `shift` + `w` / `q` | Close the terminal view
