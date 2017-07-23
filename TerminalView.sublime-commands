@@ -1,33 +1,38 @@
 [
   {
-    "caption": "Open Terminal View - Bash",
+    "caption": "Terminal View: Open Bash Terminal",
     "command": "terminal_view_open",
     "args"   : {"title": "Terminal (bash)", "cmd": "/bin/bash -l"},
   },
   // Example of a new command that can be added to the pallete
   // {
-  //   "caption": "Open Terminal View - IPython",
+  //   "caption": "Terminal View: Open IPython Terminal",
   //   "command": "terminal_view_open",
-  //   "args"   : {"title": "Terminal (IPython)", "cmd": "/bin/bash -l -c /usr/bin/ipython},
+  //   "args"   : {"title": "Terminal (IPython)", "cmd": "/bin/bash -l -c /usr/bin/ipython"},
   // },
   {
-    "caption": "Open Terminal View Settings",
+    "caption": "Preferences: Terminal View: Settings",
     "command": "edit_settings",
     "args": {"base_file": "${packages}/TerminalView/TerminalView.sublime-settings", "default": "{}"},
   },
   {
-    "caption": "Open Terminal View Color Scheme",
+    "caption": "Preferences: Terminal View: Color Scheme",
     "command": "edit_settings",
     "args": {"base_file": "${packages}/TerminalView/TerminalView.hidden-tmTheme"},
   },
   {
-    "caption": "Open Terminal View Readme",
+    "caption": "Preferences: Terminal View: Readme",
     "command": "open_file",
     "args": {"file": "${packages}/TerminalView/README.md"},
   },
   {
-    "caption": "Open Terminal View Keybindings",
+    "caption": "Preferences: Terminal View: Keybindings",
     "command": "edit_settings",
     "args": {"base_file": "${packages}/TerminalView/Default.sublime-keymap", "default": "[]"},
+  },
+  {
+    "caption": "Preferences: Terminal View: Palette Commands",
+    "command": "edit_settings",
+    "args": {"base_file": "${packages}/TerminalView/TerminalView.sublime-commands", "default": "[]"},
   },
 ]

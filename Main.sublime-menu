@@ -29,6 +29,11 @@
                                 "caption": "Color Scheme"
                             },
                             {
+                                "command": "edit_settings",
+                                "args": {"base_file": "${packages}/TerminalView/TerminalView.sublime-commands", "default": "[]"},
+                                "caption": "Palette Commands",
+                            },
+                            {
                                 "command": "open_file",
                                 "args": {"file": "${packages}/TerminalView/README.md"},
                                 "caption": "Readme"
