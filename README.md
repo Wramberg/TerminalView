@@ -10,7 +10,7 @@ A Linux/macOS plugin for Sublime Text 3 that allows for terminals inside editor 
 * Password prompts
 * Basically everything you would expect from a terminal
 
-**Note, if you encounter any issues please check the "Common problems" section below for a solution.**
+**Note, if you encounter any issues please check the "Common problems" section at the bottom for a solution.**
 
 ![example.gif](https://raw.githubusercontent.com/Wramberg/TerminalView/master/example.gif "TerminalView Demonstration")
 
@@ -34,13 +34,20 @@ git clone https://github.com/Wramberg/TerminalView.git $HOME/.config/sublime-tex
 ```
 
 ## Usage
-Simply bring up your command palette (`ctrl`+`shift`+`p` by default) and search for "Open Terminal View - Bash". This opens a terminal using 'bash -l' as shell. By default there is no keybinding for opening a terminal view but you can bind a key in your keymap to the *terminal_view_open* command:
+Simply bring up your command palette (`ctrl`+`shift`+`p` by default) and search for "Terminal View: Open Bash". This opens a terminal using 'bash -l' as shell. By default there is no keybinding for opening a terminal view but you can bind a key in your keymap to the *terminal_view_open* command:
 
 ```
 { "keys": ["ctrl+alt+t"], "command": "terminal_view_open" },
 ```
 
-which does the same. Note that you can also access settings, keybindings, etc. through the command palette by searching for "terminal view".
+which does the same. All configuration for TerminalView is available through the command palette by searching for "Terminal View". Alternatively, it can also be accessed through the menu: *Preferences->Package Settings->TerminalView*. The configuration includes
+
+* Keybindings
+* Settings
+* Palette commands
+* Color scheme
+
+These are all discussed further in the remainder of this readme.
 
 ## Keybindings
 The following keys are forwarded to the shell by default:
@@ -54,7 +61,7 @@ The following keys are forwarded to the shell by default:
 * Any `alt`+`<char>` combination
 * Any `ctrl`+`<arrow key>` combination
 
-Note that `ctrl`+`<sign>` combinations are not forwarded as they depend on keyboard layout. The default keymap is available in the menu: *Preferences->Package Settings->TerminalView* or through the command palette. Copy and adjust any missing keybindings into your user keymap.
+Note that `ctrl`+`<sign>` combinations are not forwarded as they depend on keyboard layout. The keybindings can be configured through the menu or the command palette.
 
 **If some of the keybindings are not working they are probably shadowed by keybindings in your user keymap.** To fix this find the missing keybindings in the default keymap and copy them into your user keymap. For example, if you have bound `alt`+`f` in your user keymap you need to insert the following in your user keymap:
 
@@ -80,11 +87,12 @@ Shortcut | Description
 `ctrl` + `shift` + `w` / `q` | Close the terminal view
 `ctrl` + `shift` + `up` / `down` / `left` / `right` | Move the ST3 cursor (not the terminal cursor)
 `ctrl` + `shift` + `home` / `end` | Move the ST3 cursor to beginning/end of line
+`escape` | If ST3 cursor is located elsewhere than the terminal cursor move it back - otherwise send escape to shell.
 
 Note that standard ST3 keybindings for selection are **not** shadowed which mean you can use `shift` + `keys` for selection in the terminal in case you prefer to use the keyboard. These keybindings do not move the actual terminal cursor however so whenever the terminal is updated the cursor will snap back to its point of origin.
 
 ## Settings
-The settings are available in the menu: *Preferences->Package Settings->TerminalView* or through the command palette. The settings include options for adjusting colors, scrollback history and similar. Simply copy the settings you want to change into your user settings.
+The settings are available in the menu or through the command palette. The settings include options for adjusting colors, scrollback history and margins (to avoid scrollbars). Simply copy the settings you want to change into your user settings.
 
 ## Changing shell
 If you want to use another shell it is highly recommended to do this through bash with the -c command line argument. You can control the shell command through the *cmd* argument to the *terminal_view_open* command. In addition, you can also alter the title of the terminal view to reflect which shell is running.
@@ -105,8 +113,11 @@ but this is **very experimental**. Some future development regarding this is pla
 
 When you are done you can close the terminal by closing the view (`ctrl`+`shift`+`q` or `ctrl`+`shift`+`w` as default) or exiting the shell (by e.g. hitting `ctrl`+`d`).
 
+## Palette Commands
+Additional palette commands can be added through the menu or the command palette. These are simply included as an alternative to keybindings.
+
 ## Color scheme
-The color scheme is used for both dynamic coloring (colors set by the shell) and static coloring (colors set by syntax highlighting). The color scheme itself can be tweaked by copying the default color scheme into the user color scheme file. Both of these files are available in the menu: *Preferences->Package Settings->TerminalView* or through the command palette.
+The color scheme is used for both dynamic coloring (colors set by the shell) and static coloring (colors set by syntax highlighting). The color scheme itself can be tweaked by copying the default color scheme into the user color scheme file. Both of these files are available in the menu or through the command palette.
 
 ## Syntax highlighting
 The plugin supports user provided syntax highlighting for static coloring. To use this feature create a *\<name\>.sublime-syntax* file in your *Packages/User* folder. The *packages* folder can accessed through the menu: *Preferences->Browse Packages*. The content of the file depends entirely on your needs - see https://www.sublimetext.com/docs/3/syntax.html for details. As an example consider the following which highlights the prompt in bash.
