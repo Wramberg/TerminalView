@@ -32,7 +32,6 @@ class TerminalViewManager():
         if not hasattr(cls, "terminal_views"):
             cls.terminal_views = {}
         cls.terminal_views[terminal_view.view.id()] = terminal_view
-        return terminal_view
 
     @classmethod
     def load_from_id(cls, vid):

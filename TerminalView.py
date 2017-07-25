@@ -19,7 +19,7 @@ class TerminalViewOpen(sublime_plugin.WindowCommand):
     """
     Main entry command for opening a terminal view. Only one instance of this
     class per sublime window. Once a terminal view has been opened the
-    TerminalViewCore instance for that view is called to handle everything.
+    TerminalViewActivate instance for that view is called to handle everything.
     """
     def run(self, cmd="/bin/bash -l", title="Terminal", cwd=None, syntax=None):
         """
@@ -33,6 +33,7 @@ class TerminalViewOpen(sublime_plugin.WindowCommand):
                                  open folder, $HOME, or "/", in that order of
                                  precedence. You may pass arbitrary snippet-like
                                  variables.
+            syntax (str, optional): Syntax file to use in the view.
         """
         if sublime.platform() not in ("linux", "osx"):
             sublime.error_message("TerminalView: Unsupported OS")
@@ -54,27 +55,22 @@ class TerminalViewOpen(sublime_plugin.WindowCommand):
 
 class TerminalViewActivate(sublime_plugin.TextCommand):
     def run(self, _, cmd, title, cwd, syntax):
-        terminal_view = utils.TerminalViewManager.register(TerminalView(self.view))
+        terminal_view = TerminalView(self.view)
+        utils.TerminalViewManager.register(terminal_view)
         terminal_view.run(cmd, title, cwd, syntax)
 
 
 class TerminalView:
     """
-    Main command to glue all parts together for a single instance of a terminal
-    view. For each sublime view an instance of this class exists.
+    Main class to glue all parts together for a single instance of a terminal
+    view.
     """
     def __init__(self, view):
         self.view = view
 
     def run(self, cmd, title, cwd, syntax):
         """
-        Initialize the view, in which this command is called, as a terminal
-        view.
-
-        Args:
-            cmd (str): Command to execute as shell (e.g. 'bash -l').
-            title (str): Terminal view title.
-            cwd (str): The working directory to start in.
+        Initialize the view as a terminal view.
         """
         self._cmd = cmd
         self._cwd = cwd
