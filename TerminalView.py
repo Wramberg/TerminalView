@@ -49,15 +49,24 @@ class TerminalViewOpen(sublime_plugin.WindowCommand):
                 cwd = "/"
 
         args = {"cmd": cmd, "title": title, "cwd": cwd, "syntax": syntax}
-        self.window.new_file().run_command("terminal_view_core", args=args)
+        self.window.new_file().run_command("terminal_view_activate", args=args)
 
 
-class TerminalViewCore(sublime_plugin.TextCommand):
+class TerminalViewActivate(sublime_plugin.TextCommand):
+    def run(self, _, cmd, title, cwd, syntax):
+        terminal_view = utils.TerminalViewManager.register(TerminalView(self.view))
+        terminal_view.run(cmd, title, cwd, syntax)
+
+
+class TerminalView:
     """
     Main command to glue all parts together for a single instance of a terminal
     view. For each sublime view an instance of this class exists.
     """
-    def run(self, _, cmd, title, cwd, syntax):
+    def __init__(self, view):
+        self.view = view
+
+    def run(self, cmd, title, cwd, syntax):
         """
         Initialize the view, in which this command is called, as a terminal
         view.
@@ -88,7 +97,7 @@ class TerminalViewCore(sublime_plugin.TextCommand):
         # restarted (or when changing back to a project that had a terminal view
         # open)
         args = {"cmd": cmd, "title": title, "cwd": cwd, "syntax": syntax}
-        self.view.settings().set("terminal_view_core_args", args)
+        self.view.settings().set("terminal_view_activate_args", args)
 
         # Start the main loop
         threading.Thread(target=self._main_update_loop).start()
@@ -197,7 +206,7 @@ class ProjectSwitchWatcher(sublime_plugin.EventListener):
 
 def restart_terminal_view_session(view):
     settings = view.settings()
-    if settings.has("terminal_view_core_args"):
+    if settings.has("terminal_view_activate_args"):
         view.run_command("terminal_view_clear")
-        args = settings.get("terminal_view_core_args")
-        view.run_command("terminal_view_core", args=args)
+        args = settings.get("terminal_view_activate_args")
+        view.run_command("terminal_view_activate", args=args)
