@@ -80,7 +80,11 @@ class LinuxPty():
         else:
             keycode = self._get_key_code(key)
 
-        self._send_string(keycode)
+        self.send_string(keycode)
+
+    def send_string(self, string):
+        if self.is_running():
+            os.write(self._pty, string.encode('UTF-8'))
 
     def _get_ctrl_combination_key_code(self, key):
         key = key.lower()
@@ -106,12 +110,7 @@ class LinuxPty():
     def _get_key_code(self, key):
         if key in _LINUX_KEY_MAP:
             return _LINUX_KEY_MAP[key]
-
         return key
-
-    def _send_string(self, string):
-        if self.is_running():
-            os.write(self._pty, string.encode('UTF-8'))
 
 
 _LINUX_KEY_MAP = {

@@ -52,6 +52,7 @@ class TerminalViewSendString(sublime_plugin.WindowCommand):
             windows = [self.window]
         else:
             windows = sublime.windows()
+
         view = None
         for w in windows:
             for v in w.views():
@@ -67,4 +68,4 @@ class TerminalViewSendString(sublime_plugin.WindowCommand):
             return
 
         terminal_view = TerminalViewManager.load_from_id(view.id())
-        terminal_view._shell._send_string(string)
+        terminal_view.send_string_to_shell(string)
