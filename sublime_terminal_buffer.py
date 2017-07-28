@@ -171,7 +171,6 @@ class TerminalViewKeypress(sublime_plugin.TextCommand):
         # Lookup the sublime buffer instance for this view the first time this
         # command is called
         if self._sub_buffer is None:
-            print("Loading ST buffer")
             self._sub_buffer = SublimeBufferManager.load_from_id(self.view.id())
 
         if type(kwargs["key"]) is not str:

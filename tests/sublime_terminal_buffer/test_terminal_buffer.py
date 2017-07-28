@@ -15,10 +15,9 @@ from TerminalView import sublime_terminal_buffer
 class line_updates(unittest.TestCase):
     def setUp(self):
         self._test_view = sublime.SublimeViewStub(1)
-        self._test_view.terminal_view_scroll = None
-        self._test_view.terminal_view_color_regions = {}
-        self._test_view.terminal_view_buffer_contents = {}
+        self._sub_buffer = sublime_terminal_buffer.SublimeTerminalBuffer(self._test_view, "Title", None)
         self._sublime_cmd = sublime_terminal_buffer.TerminalViewUpdate(self._test_view)
+        self._sublime_cmd._sub_buffer = self._sub_buffer
 
         # We assume the view is 5 lines and 11 chars wide
         self._expected_buffer_contents = []
@@ -32,7 +31,7 @@ class line_updates(unittest.TestCase):
         self._sublime_cmd._update_lines(None, lines, {})
 
         # Check that local copy of buffer is correct
-        buffer_cache = self._test_view.terminal_view_buffer_contents
+        buffer_cache = self._sub_buffer.buffer_contents()
         for i in range(5):
             self.assertEqual(buffer_cache[i], self._expected_buffer_contents[i])
 
@@ -56,7 +55,7 @@ class line_updates(unittest.TestCase):
         self._sublime_cmd._update_lines(None, lines, {})
 
         # Check that local copy of buffer is correct
-        buffer_cache = self._test_view.terminal_view_buffer_contents
+        buffer_cache = self._sub_buffer.buffer_contents()
         for i in range(5):
             self.assertEqual(buffer_cache[i], self._expected_buffer_contents[i])
 
