@@ -10,6 +10,29 @@ import sublime_plugin
 from . import terminal_emulator
 
 
+class SublimeBufferManager():
+    """
+    A manager to control all SublimeBuffer instances so they can be looked up
+    based on the sublime view they are governing.
+    """
+    @classmethod
+    def register(cls, uid, sublime_buffer):
+        if not hasattr(cls, "buffers"):
+            cls.buffers = {}
+        cls.buffers[uid] = sublime_buffer
+
+    @classmethod
+    def deregister(cls, uid):
+        del buffers[uid]
+
+    @classmethod
+    def load_from_id(cls, uid):
+        if uid in cls.buffers:
+            return cls.buffers[uid]
+        else:
+            raise Exception("[terminal_view error] Sublime buffer not found")
+
+
 class SublimeTerminalBuffer():
     def __init__(self, sublime_view, title, logger, syntax_file=None):
         self._view = sublime_view
@@ -31,53 +54,60 @@ class SublimeTerminalBuffer():
         if syntax_file is not None:
             self._view.set_syntax_file("Packages/User/" + syntax_file)
 
-        settings = sublime.load_settings('TerminalView.sublime-settings')
-        self._view.terminal_view_logger = logger
-        self._view.terminal_view_show_colors = settings.get("terminal_view_show_colors", False)
-
-        # Get configured margins
-        self._right_margin = settings.get("terminal_view_right_margin", 3)
-        self._bottom_margin = settings.get("terminal_view_bottom_margin", 0)
-
-        # Flag to request scrolling in view (from one thread to another)
-        self._view.terminal_view_scroll = None
-
         # Mark in the views private settings that this is a terminal view so we
         # can use this as context in the keymap
         self._view.settings().set("terminal_view", True)
 
-        # Save a dict on the view to store color regions for each line
-        self._view.terminal_view_color_regions = {}
-
-        # Save keypress callback for this view
-        self._view.terminal_view_keypress_callback = None
-
-        # Keep track of the content in the buffer (having a local copy is a lot
-        # faster than using the ST3 API to get the contents)
-        self._view.terminal_view_buffer_contents = {}
-
-        self._view.terminal_view_last_update = 0
+        settings = sublime.load_settings('TerminalView.sublime-settings')
+        self._view.terminal_view_logger = logger
+        self._show_colors = settings.get("terminal_view_show_colors", False)
+        self._right_margin = settings.get("terminal_view_right_margin", 3)
+        self._bottom_margin = settings.get("terminal_view_bottom_margin", 0)
 
         # Use pyte as underlying terminal emulator
         hist = settings.get("terminal_view_scroll_history", 1000)
         ratio = settings.get("terminal_view_scroll_ratio", 0.5)
-        self._view.terminal_view_emulator = \
-            terminal_emulator.PyteTerminalEmulator(80, 24, hist, ratio)
+        self._term_emulator = terminal_emulator.PyteTerminalEmulator(80, 24, hist, ratio)
+
+        self._keypress_callback = None
+        self._color_regions = {}
+        self._buffer_contents = {}
+
+        # Register the new instance of the sublime buffer class so other
+        # commands can look it up when they are called in the same sublime view
+        SublimeBufferManager.register(sublime_view.id(), self)
 
     def set_keypress_callback(self, callback):
-        self._view.terminal_view_keypress_callback = callback
+        self._keypress_callback = callback
+
+    def get_keypress_callback(self):
+        return self._keypress_callback
+
+    def color_regions(self):
+        return self._color_regions
+
+    def buffer_contents(self):
+        return self._buffer_contents
+
+    def colors_enabled(self):
+        return self._show_colors
+
+    def terminal_emulator(self):
+        return self._term_emulator
 
     def insert_data(self, data):
         start = time.time()
-        self._view.terminal_view_emulator.feed(data)
+        self._term_emulator.feed(data)
         t = time.time() - start
         self._view.terminal_view_logger.log("Updated terminal emulator in %.3f ms" % (t * 1000.))
 
     def update_view(self):
-        # If update fails last_update remains the same
-        last_update = self._view.terminal_view_last_update
+        last_update = self._view.settings().get("terminal_view_last_update", 0)
         self._view.run_command("terminal_view_update")
-        if self._view.terminal_view_last_update == last_update:
+
+        # If timestamp did not change something failed. Report it back to the
+        # caller to shutdown or otherwise deal with it.
+        if last_update == self._view.settings().get("terminal_view_last_update", 0):
             return False
 
         return True
@@ -89,9 +119,10 @@ class SublimeTerminalBuffer():
         if self.is_open():
             sublime.active_window().focus_view(self._view)
             sublime.active_window().run_command("close_file")
+        SublimeBufferManager.deregister(self._view.id())
 
     def update_terminal_size(self, nb_rows, nb_cols):
-        self._view.terminal_view_emulator.resize(nb_rows, nb_cols)
+        self._term_emulator.resize(nb_rows, nb_cols)
 
     def view_size(self):
         view = self._view
@@ -116,21 +147,33 @@ class SublimeTerminalBuffer():
 
 class TerminalViewScroll(sublime_plugin.TextCommand):
     def run(self, _, forward=False, line=False):
-        # Mark on view to request a scroll in the thread that handles the
-        # updates. Note lines are supported at the moment.
+        # Mark in view to request a scroll in the thread that handles the
+        # updates. Note lines are NOT supported at the moment.
         if line:
-            self.view.terminal_view_scroll = ("line", )
+            scroll_request = ("line", )
         else:
-            self.view.terminal_view_scroll = ("page", )
+            scroll_request = ("page", )
 
         if not forward:
-            self.view.terminal_view_scroll = self.view.terminal_view_scroll + ("up", )
+            scroll_request = scroll_request + ("up", )
         else:
-            self.view.terminal_view_scroll = self.view.terminal_view_scroll + ("down", )
+            scroll_request = scroll_request + ("down", )
+
+        self.view.settings().set("terminal_view_scroll", scroll_request)
 
 
 class TerminalViewKeypress(sublime_plugin.TextCommand):
+    def __init__(self, view):
+        super().__init__(view)
+        self._sub_buffer = None
+
     def run(self, _, **kwargs):
+        # Lookup the sublime buffer instance for this view the first time this
+        # command is called
+        if self._sub_buffer is None:
+            print("Loading ST buffer")
+            self._sub_buffer = SublimeBufferManager.load_from_id(self.view.id())
+
         if type(kwargs["key"]) is not str:
             sublime.error_message("Terminal View: Got keypress with non-string key")
             return
@@ -148,9 +191,11 @@ class TerminalViewKeypress(sublime_plugin.TextCommand):
         if "shift" not in kwargs:
             kwargs["shift"] = False
 
-        if self.view.terminal_view_keypress_callback:
-            cb = self.view.terminal_view_keypress_callback
-            cb(kwargs["key"], kwargs["ctrl"], kwargs["alt"], kwargs["shift"], kwargs["meta"])
+        # Lookup the sublime buffer instance for this view
+        sublime_buffer = SublimeBufferManager.load_from_id(self.view.id())
+        keypress_cb = sublime_buffer.get_keypress_callback()
+        if keypress_cb:
+            keypress_cb(kwargs["key"], kwargs["ctrl"], kwargs["alt"], kwargs["shift"], kwargs["meta"])
 
 
 class TerminalViewCopy(sublime_plugin.TextCommand):
@@ -173,10 +218,12 @@ class TerminalViewCopy(sublime_plugin.TextCommand):
 
 class TerminalViewPaste(sublime_plugin.TextCommand):
     def run(self, edit):
-        if not self.view.terminal_view_keypress_callback:
+        # Lookup the sublime buffer instance for this view
+        sublime_buffer = SublimeBufferManager.load_from_id(self.view.id())
+        keypress_cb = sublime_buffer.get_keypress_callback()
+        if not keypress_cb:
             return
 
-        keypress_cb = self.view.terminal_view_keypress_callback
         copied = sublime.get_clipboard()
         copied = copied.replace("\r\n", "\n")
         for char in copied:
@@ -209,19 +256,21 @@ class TerminalViewRefocus(sublime_plugin.TextCommand):
 
 
 class TerminalViewUpdate(sublime_plugin.TextCommand):
-    def run(self, edit):
-        # When reloading the plugin the view sometimes becomes completely
-        # invalid as seen from text commands
-        if not hasattr(self.view, "terminal_view_emulator"):
-            return
+    def __init__(self, view):
+        super().__init__(view)
+        self._sub_buffer = None
 
-        # Check if scroll was requested
+    def run(self, edit):
+        # Lookup the sublime buffer instance for this view the first time this
+        # command is called
+        if self._sub_buffer is None:
+            self._sub_buffer = SublimeBufferManager.load_from_id(self.view.id())
+
         self._update_scrolling()
 
         # Update dirty lines in buffer if there are any
-        dirty_lines = self.view.terminal_view_emulator.dirty_lines()
+        dirty_lines = self._sub_buffer.terminal_emulator().dirty_lines()
         if len(dirty_lines) > 0:
-            # Reset viewport when data is inserted
             self._update_viewport_position()
 
             # Invalidate the last cursor position when dirty lines are updated
@@ -229,16 +278,16 @@ class TerminalViewUpdate(sublime_plugin.TextCommand):
 
             # Generate color map
             color_map = {}
-            if self.view.terminal_view_show_colors:
+            if self._sub_buffer.colors_enabled():
                 start = time.time()
-                color_map = self.view.terminal_view_emulator.color_map(dirty_lines.keys())
+                color_map = self._sub_buffer.terminal_emulator().color_map(dirty_lines.keys())
                 t = time.time() - start
                 self.view.terminal_view_logger.log("Generated color map in %.3f ms" % (t * 1000.))
 
             # Update the view
             start = time.time()
             self._update_lines(edit, dirty_lines, color_map)
-            self.view.terminal_view_emulator.clear_dirty()
+            self._sub_buffer.terminal_emulator().clear_dirty()
             t = time.time() - start
             self.view.terminal_view_logger.log("Updated ST3 view in %.3f ms" % (t * 1000.))
 
@@ -247,33 +296,35 @@ class TerminalViewUpdate(sublime_plugin.TextCommand):
         # bottom
         self._update_cursor()
 
-        self.view.terminal_view_last_update = time.time()
+        self.view.settings().set("terminal_view_last_update", time.time())
 
     def _update_viewport_position(self):
         self.view.set_viewport_position((0, 0), animate=False)
 
     def _update_scrolling(self):
-        if self.view.terminal_view_scroll is not None:
-            index = self.view.terminal_view_scroll[0]
-            direction = self.view.terminal_view_scroll[1]
+        scroll_request = self.view.settings().get("terminal_view_scroll", None)
+        if scroll_request is not None:
+            index = scroll_request[0]
+            direction = scroll_request[1]
             if index == "line":
                 if direction == "up":
-                    self.view.terminal_view_emulator.prev_line()
+                    self._sub_buffer.terminal_emulator().prev_line()
                 else:
-                    self.view.terminal_view_emulator.next_line()
+                    self._sub_buffer.terminal_emulator().next_line()
             else:
                 if direction == "up":
-                    self.view.terminal_view_emulator.prev_page()
+                    self._sub_buffer.terminal_emulator().prev_page()
                 else:
-                    self.view.terminal_view_emulator.next_page()
+                    self._sub_buffer.terminal_emulator().next_page()
 
-            self.view.terminal_view_scroll = None
+            self.view.settings().set("terminal_view_scroll", None)
 
     def _update_cursor(self):
-        cursor_pos = self.view.terminal_view_emulator.cursor()
+        cursor_pos = self._sub_buffer.terminal_emulator().cursor()
         last_cursor_pos = self.view.settings().get("terminal_view_last_cursor_pos")
         if last_cursor_pos and last_cursor_pos[0] == cursor_pos[0] and last_cursor_pos[1] == cursor_pos[1]:
             return
+
         tp = self.view.text_point(cursor_pos[0], cursor_pos[1])
         self.view.sel().clear()
         self.view.sel().add(sublime.Region(tp, tp))
@@ -296,8 +347,8 @@ class TerminalViewUpdate(sublime_plugin.TextCommand):
         self.view.set_read_only(True)
 
     def _remove_color_regions_on_line(self, line_no):
-        if line_no in self.view.terminal_view_color_regions:
-            region_deque = self.view.terminal_view_color_regions[line_no]
+        if line_no in self._sub_buffer.color_regions():
+            region_deque = self._sub_buffer.color_regions()[line_no]
             try:
                 while True:
                     region = region_deque.popleft()
@@ -318,15 +369,15 @@ class TerminalViewUpdate(sublime_plugin.TextCommand):
 
         if content is None:
             self.view.erase(edit, line_region)
-            if line_no in self.view.terminal_view_buffer_contents:
-                del self.view.terminal_view_buffer_contents[line_no]
+            if line_no in self._sub_buffer.buffer_contents():
+                del self._sub_buffer.buffer_contents()[line_no]
         else:
             # Replace content on the line with new content
             content_w_newline = content + "\n"
             self.view.replace(edit, line_region, content_w_newline)
 
             # Update our local copy of the ST3 view buffer
-            self.view.terminal_view_buffer_contents[line_no] = content_w_newline
+            self._sub_buffer.buffer_contents()[line_no] = content_w_newline
 
     def _update_line_colors(self, line_no, line_color_map):
         # Note this function has been optimized quite a bit. Calls to the ST3
@@ -351,25 +402,25 @@ class TerminalViewUpdate(sublime_plugin.TextCommand):
             self._register_color_region(line_no, region_key)
 
     def _register_color_region(self, line_no, key):
-        if line_no in self.view.terminal_view_color_regions:
-            self.view.terminal_view_color_regions[line_no].appendleft(key)
+        if line_no in self._sub_buffer.color_regions():
+            self._sub_buffer.color_regions()[line_no].appendleft(key)
         else:
-            self.view.terminal_view_color_regions[line_no] = collections.deque()
-            self.view.terminal_view_color_regions[line_no].appendleft(key)
+            self._sub_buffer.color_regions()[line_no] = collections.deque()
+            self._sub_buffer.color_regions()[line_no].appendleft(key)
 
     def _get_line_start_and_end_points(self, line_no):
         start_point = 0
 
         # Sum all lines leading up to the line we want the start point to
         for i in range(line_no):
-            if i in self.view.terminal_view_buffer_contents:
-                line_len = len(self.view.terminal_view_buffer_contents[i])
+            if i in self._sub_buffer.buffer_contents():
+                line_len = len(self._sub_buffer.buffer_contents()[i])
                 start_point = start_point + line_len
 
         # Add length of line to the end_point
         end_point = start_point
-        if line_no in self.view.terminal_view_buffer_contents:
-            line_len = len(self.view.terminal_view_buffer_contents[line_no])
+        if line_no in self._sub_buffer.buffer_contents():
+            line_len = len(self._sub_buffer.buffer_contents()[line_no])
             end_point = end_point + line_len
 
         return (start_point, end_point)

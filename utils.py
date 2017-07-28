@@ -25,7 +25,7 @@ class ConsoleLogger():
 
 class TerminalViewManager():
     """
-    A manager to control all TerminalView instance.
+    A manager to control all TerminalView instances.
     """
     @classmethod
     def register(cls, terminal_view):
