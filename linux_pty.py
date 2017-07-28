@@ -30,6 +30,22 @@ class LinuxPty():
                                          env=self._env, close_fds=True, start_new_session=True,
                                          cwd=cwd)
 
+    def verify_environment(self):
+        pid = self._process.pid
+        env_file_path = "/proc/" + str(pid) + "/environ"
+        with open(env_file_path, "r") as env_file:
+            data = env_file.read()
+            env_var_strings = data.split("\x00")
+            for key_val_string in env_var_strings:
+                key_val = key_val_string.split("=")
+                if len(key_val) >= 2:
+                    key = key_val[0]
+                    val = key_val[1]
+
+                if key == "TERM" and val != self._env["TERM"]:
+                    err_str = "Warning: TerminalView environment variable overridden. TERM should equal [%s] but was changed to [%s]. Please correct this is you want TerminalView to function properly. For more information check the README." % (self._env["TERM"], val)
+                    # TODO return this to terminal view main class so it can be shown in terminal when it is started ?
+
     def stop(self):
         """
         Stop the shell
