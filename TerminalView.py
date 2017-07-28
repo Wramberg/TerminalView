@@ -74,12 +74,10 @@ class TerminalView:
         """
         self._cmd = cmd
         self._cwd = cwd
-        self._console_logger = utils.ConsoleLogger()
 
         # Initialize the sublime view
-        self._terminal_buffer = sublime_terminal_buffer.SublimeTerminalBuffer(self.view, title,
-                                                                              self._console_logger,
-                                                                              syntax)
+        self._terminal_buffer = \
+            sublime_terminal_buffer.SublimeTerminalBuffer(self.view, title, syntax)
         self._terminal_buffer.set_keypress_callback(self.terminal_view_keypress_callback)
         self._terminal_buffer_is_open = True
         self._terminal_rows = 0
@@ -150,7 +148,7 @@ class TerminalView:
         max_read_size = 4096
         data = self._shell.receive_output(max_read_size)
         if data is not None:
-            self._console_logger.log("Got %u bytes of data from shell" % (len(data), ))
+            utils.ConsoleLogger.log("Got %u bytes of data from shell" % (len(data), ))
             self._terminal_buffer.insert_data(data)
 
     def _resize_screen_if_needed(self):
@@ -165,7 +163,7 @@ class TerminalView:
         if row_diff or col_diff:
             log = "Changing screen size from (%i, %i) to (%i, %i)" % \
                   (self._terminal_rows, self._terminal_columns, rows, cols)
-            self._console_logger.log(log)
+            utils.ConsoleLogger.log(log)
 
             self._terminal_rows = rows
             self._terminal_columns = cols

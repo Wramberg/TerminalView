@@ -8,6 +8,7 @@ import sublime
 import sublime_plugin
 
 from . import terminal_emulator
+from . import utils
 
 
 class SublimeBufferManager():
@@ -34,7 +35,7 @@ class SublimeBufferManager():
 
 
 class SublimeTerminalBuffer():
-    def __init__(self, sublime_view, title, logger, syntax_file=None):
+    def __init__(self, sublime_view, title, syntax_file=None):
         self._view = sublime_view
         self._view.set_name(title)
         self._view.set_scratch(True)
@@ -59,7 +60,6 @@ class SublimeTerminalBuffer():
         self._view.settings().set("terminal_view", True)
 
         settings = sublime.load_settings('TerminalView.sublime-settings')
-        self._view.terminal_view_logger = logger
         self._show_colors = settings.get("terminal_view_show_colors", False)
         self._right_margin = settings.get("terminal_view_right_margin", 3)
         self._bottom_margin = settings.get("terminal_view_bottom_margin", 0)
@@ -99,7 +99,7 @@ class SublimeTerminalBuffer():
         start = time.time()
         self._term_emulator.feed(data)
         t = time.time() - start
-        self._view.terminal_view_logger.log("Updated terminal emulator in %.3f ms" % (t * 1000.))
+        utils.ConsoleLogger.log("Updated terminal emulator in %.3f ms" % (t * 1000.))
 
     def update_view(self):
         last_update = self._view.settings().get("terminal_view_last_update", 0)
@@ -281,14 +281,14 @@ class TerminalViewUpdate(sublime_plugin.TextCommand):
                 start = time.time()
                 color_map = self._sub_buffer.terminal_emulator().color_map(dirty_lines.keys())
                 t = time.time() - start
-                self.view.terminal_view_logger.log("Generated color map in %.3f ms" % (t * 1000.))
+                utils.ConsoleLogger.log("Generated color map in %.3f ms" % (t * 1000.))
 
             # Update the view
             start = time.time()
             self._update_lines(edit, dirty_lines, color_map)
             self._sub_buffer.terminal_emulator().clear_dirty()
             t = time.time() - start
-            self.view.terminal_view_logger.log("Updated ST3 view in %.3f ms" % (t * 1000.))
+            utils.ConsoleLogger.log("Updated ST3 view in %.3f ms" % (t * 1000.))
 
         # Update cursor last to avoid a selection blinking at the top of the
         # terminal when starting or when a new prompt is being drawn at the
