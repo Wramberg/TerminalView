@@ -42,7 +42,8 @@ class LinuxPty():
         if self.is_running():
             self._process.kill()
         self._process = None
-        return
+        os.close(self._pts)
+        os.close(self._pty)
 
     def receive_output(self, max_read_size, timeout=0):
         """
