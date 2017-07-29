@@ -36,7 +36,7 @@ class TerminalViewManager():
         if hasattr(cls, "term_views") and uid in cls.term_views:
             return cls.term_views[uid]
         else:
-            raise Exception("[terminal_view error] Terminal view not found")
+            return None
 
 
 class TerminalViewOpen(sublime_plugin.WindowCommand):
@@ -229,3 +229,41 @@ def restart_terminal_view_session(view):
         view.run_command("terminal_view_clear")
         args = settings.get("terminal_view_activate_args")
         view.run_command("terminal_view_activate", args=args)
+
+
+class TerminalViewSendString(sublime_plugin.WindowCommand):
+    """
+    Command to send a string to an active terminal.
+
+    Example to send sigint:
+        window.run_command("terminal_view_send_string", args={"string": "\x03"})
+    """
+    def run(self, string, current_window_only=True):
+        """
+        Send a string
+
+        Args:
+            string (str): string of characters to send
+            current_window_only (bool, optional): constrain terminal search to
+                                                  the current ST window only
+        """
+        if current_window_only:
+            windows = [self.window]
+        else:
+            windows = sublime.windows()
+
+        term_view = None
+        for w in windows:
+            for v in w.views():
+                term_view = TerminalViewManager.load_from_id(v.id())
+                if term_view is not None:
+                    group, index = w.get_view_index(v)
+                    active_view = w.active_view_in_group(group)
+                    if active_view == v:
+                        break
+
+        if term_view is None:
+            utils.ConsoleLogger.log("No terminal found")
+            return
+
+        term_view.send_string_to_shell(string)
