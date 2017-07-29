@@ -24,24 +24,6 @@ class ConsoleLogger():
             print(prefix + string)
 
 
-class TerminalViewManager():
-    """
-    A manager to control all TerminalView instances.
-    """
-    @classmethod
-    def register(cls, terminal_view):
-        if not hasattr(cls, "terminal_views"):
-            cls.terminal_views = {}
-        cls.terminal_views[terminal_view.view.id()] = terminal_view
-
-    @classmethod
-    def load_from_id(cls, vid):
-        if vid in cls.terminal_views:
-            return cls.terminal_views[vid]
-        else:
-            raise Exception("terminal view not found.")
-
-
 class TerminalViewSendString(sublime_plugin.WindowCommand):
     """
     A command to send any text to the active terminal.

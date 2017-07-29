@@ -15,6 +15,30 @@ from . import linux_pty
 from . import utils
 
 
+class TerminalViewManager():
+    """
+    A manager to control all SublimeBuffer instances so they can be looked up
+    based on the sublime view they are governing.
+    """
+    @classmethod
+    def register(cls, uid, term_view):
+        if not hasattr(cls, "term_views"):
+            cls.term_views = {}
+        cls.term_views[uid] = term_view
+
+    @classmethod
+    def deregister(cls, uid):
+        if hasattr(cls, "term_views"):
+            del cls.term_views[uid]
+
+    @classmethod
+    def load_from_id(cls, uid):
+        if hasattr(cls, "term_views") and uid in cls.term_views:
+            return cls.term_views[uid]
+        else:
+            raise Exception("[terminal_view error] Terminal view not found")
+
+
 class TerminalViewOpen(sublime_plugin.WindowCommand):
     """
     Main entry command for opening a terminal view. Only one instance of this
@@ -56,7 +80,7 @@ class TerminalViewOpen(sublime_plugin.WindowCommand):
 class TerminalViewActivate(sublime_plugin.TextCommand):
     def run(self, _, cmd, title, cwd, syntax):
         terminal_view = TerminalView(self.view)
-        utils.TerminalViewManager.register(terminal_view)
+        TerminalViewManager.register(self.view.id(), terminal_view)
         terminal_view.run(cmd, title, cwd, syntax)
 
 
@@ -67,6 +91,9 @@ class TerminalView:
     """
     def __init__(self, view):
         self.view = view
+
+    def __del__(self):
+        utils.ConsoleLogger.log("Terminal view instance deleted")
 
     def run(self, cmd, title, cwd, syntax):
         """
@@ -122,13 +149,7 @@ class TerminalView:
         current = time.time()
         while True:
             self._poll_shell_output()
-            success = self._terminal_buffer.update_view()
-            if not success:
-                # Leave view open as we should only get an update if we are
-                # reloading the plugin
-                self._stop(close_view=False)
-                break
-
+            self._terminal_buffer.update_view()
             self._resize_screen_if_needed()
             if (not self._terminal_buffer.is_open()) or (not self._shell.is_running()):
                 self._stop()
@@ -170,17 +191,17 @@ class TerminalView:
             self._shell.update_screen_size(self._terminal_rows, self._terminal_columns)
             self._terminal_buffer.update_terminal_size(self._terminal_rows, self._terminal_columns)
 
-    def _stop(self, close_view=True):
+    def _stop(self):
         """
         Stop the terminal and close everything down.
         """
-        if self._terminal_buffer_is_open and close_view:
-            self._terminal_buffer.close()
-            self._terminal_buffer_is_open = False
+        self._terminal_buffer.close()
+        self._terminal_buffer_is_open = False
+        self._shell.stop()
+        self._shell_is_running = False
 
-        if self._shell_is_running:
-            self._shell.stop()
-            self._shell_is_running = False
+        # When stopping deregister in the manager
+        TerminalViewManager.deregister(self.view.id())
 
 
 def plugin_loaded():
@@ -201,6 +222,7 @@ class ProjectSwitchWatcher(sublime_plugin.EventListener):
         restart_terminal_view_session(view)
 
 
+# TODO when restarting we should do some cleanup
 def restart_terminal_view_session(view):
     settings = view.settings()
     if settings.has("terminal_view_activate_args"):

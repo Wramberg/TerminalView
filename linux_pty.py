@@ -14,6 +14,8 @@ try:
 except ImportError:
     pass
 
+from . import utils
+
 
 class LinuxPty():
     """
@@ -29,6 +31,9 @@ class LinuxPty():
                                          stdout=self._pts, stderr=self._pts, shell=False,
                                          env=self._env, close_fds=True, start_new_session=True,
                                          cwd=cwd)
+
+    def __del__(self):
+        utils.ConsoleLogger.log("Linux PTY instance deleted")
 
     def stop(self):
         """

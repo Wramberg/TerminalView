@@ -78,10 +78,13 @@ class SublimeTerminalBuffer():
         # commands can look it up when they are called in the same sublime view
         SublimeBufferManager.register(sublime_view.id(), self)
 
+    def __del__(self):
+        utils.ConsoleLogger.log("Sublime buffer instance deleted")
+
     def set_keypress_callback(self, callback):
         self._keypress_callback = callback
 
-    def get_keypress_callback(self):
+    def keypress_callback(self):
         return self._keypress_callback
 
     def color_regions(self):
@@ -121,6 +124,7 @@ class SublimeTerminalBuffer():
             sublime.active_window().focus_view(self._view)
             sublime.active_window().run_command("close_file")
         SublimeBufferManager.deregister(self._view.id())
+        self._keypress_callback = None
 
     def update_terminal_size(self, nb_rows, nb_cols):
         self._term_emulator.resize(nb_rows, nb_cols)
@@ -193,7 +197,7 @@ class TerminalViewKeypress(sublime_plugin.TextCommand):
 
         # Lookup the sublime buffer instance for this view
         sublime_buffer = SublimeBufferManager.load_from_id(self.view.id())
-        keypress_cb = sublime_buffer.get_keypress_callback()
+        keypress_cb = sublime_buffer.keypress_callback()
         if keypress_cb:
             keypress_cb(kwargs["key"], kwargs["ctrl"], kwargs["alt"], kwargs["shift"], kwargs["meta"])
 
@@ -220,7 +224,7 @@ class TerminalViewPaste(sublime_plugin.TextCommand):
     def run(self, edit):
         # Lookup the sublime buffer instance for this view
         sublime_buffer = SublimeBufferManager.load_from_id(self.view.id())
-        keypress_cb = sublime_buffer.get_keypress_callback()
+        keypress_cb = sublime_buffer.keypress_callback()
         if not keypress_cb:
             return
 
