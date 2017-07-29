@@ -222,13 +222,13 @@ class ProjectSwitchWatcher(sublime_plugin.EventListener):
         restart_terminal_view_session(view)
 
 
-# TODO when restarting we should do some cleanup
 def restart_terminal_view_session(view):
     settings = view.settings()
     if settings.has("terminal_view_activate_args"):
-        view.run_command("terminal_view_clear")
-        args = settings.get("terminal_view_activate_args")
-        view.run_command("terminal_view_activate", args=args)
+        if TerminalViewManager.load_from_id(view.id()) is None:
+            view.run_command("terminal_view_clear")
+            args = settings.get("terminal_view_activate_args")
+            view.run_command("terminal_view_activate", args=args)
 
 
 class TerminalViewSendString(sublime_plugin.WindowCommand):
