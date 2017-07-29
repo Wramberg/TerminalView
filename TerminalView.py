@@ -146,30 +146,22 @@ class TerminalView:
         This is the main update function. It attempts to run at a certain number
         of frames per second, and keeps input and output synchronized.
         """
-        # 30 frames per second should be responsive enough
-        ideal_delta = 1.0 / 30.0
-        current = time.time()
+        update_rate = 1.0 / 30.0
         while True:
-            self._poll_shell_output()
+            # We timeout to service resize, scroll, etc.
+            self._poll_shell_output(timeout=update_rate)
             self._terminal_buffer.update_view()
             self._resize_screen_if_needed()
             if (not self._terminal_buffer.is_open()) or (not self._shell.is_running()):
                 self._stop()
                 break
 
-            previous = current
-            current = time.time()
-            actual_delta = current - previous
-            time_left = ideal_delta - actual_delta
-            if time_left > 0.0:
-                time.sleep(time_left)
-
-    def _poll_shell_output(self):
+    def _poll_shell_output(self, timeout=0):
         """
         Poll the output of the shell
         """
         max_read_size = 4096
-        data = self._shell.receive_output(max_read_size)
+        data = self._shell.receive_output(max_read_size, timeout=timeout)
         if data is not None:
             utils.ConsoleLogger.log("Got %u bytes of data from shell" % (len(data), ))
             self._terminal_buffer.insert_data(data)

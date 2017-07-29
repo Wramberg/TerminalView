@@ -106,15 +106,7 @@ class SublimeTerminalBuffer():
         utils.ConsoleLogger.log("Updated terminal emulator in %.3f ms" % (t * 1000.))
 
     def update_view(self):
-        last_update = self._view.settings().get("terminal_view_last_update", 0)
         self._view.run_command("terminal_view_update")
-
-        # If timestamp did not change something failed. Report it back to the
-        # caller to shutdown or otherwise deal with it.
-        if last_update == self._view.settings().get("terminal_view_last_update", 0):
-            return False
-
-        return True
 
     def is_open(self):
         return self._view.is_valid()
