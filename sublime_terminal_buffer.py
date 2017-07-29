@@ -24,11 +24,12 @@ class SublimeBufferManager():
 
     @classmethod
     def deregister(cls, uid):
-        del buffers[uid]
+        if hasattr(cls, "buffers"):
+            del cls.buffers[uid]
 
     @classmethod
     def load_from_id(cls, uid):
-        if uid in cls.buffers:
+        if hasattr(cls, "buffers") and uid in cls.buffers:
             return cls.buffers[uid]
         else:
             raise Exception("[terminal_view error] Sublime buffer not found")
