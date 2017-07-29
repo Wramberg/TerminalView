@@ -17,7 +17,7 @@ from . import utils
 
 class TerminalViewManager():
     """
-    A manager to control all SublimeBuffer instances so they can be looked up
+    A manager to control all TerminalView instances so they can be looked up
     based on the sublime view they are governing.
     """
     @classmethod
@@ -80,7 +80,6 @@ class TerminalViewOpen(sublime_plugin.WindowCommand):
 class TerminalViewActivate(sublime_plugin.TextCommand):
     def run(self, _, cmd, title, cwd, syntax):
         terminal_view = TerminalView(self.view)
-        TerminalViewManager.register(self.view.id(), terminal_view)
         terminal_view.run(cmd, title, cwd, syntax)
 
 
@@ -105,7 +104,7 @@ class TerminalView:
         # Initialize the sublime view
         self._terminal_buffer = \
             sublime_terminal_buffer.SublimeTerminalBuffer(self.view, title, syntax)
-        self._terminal_buffer.set_keypress_callback(self.terminal_view_keypress_callback)
+        self._terminal_buffer.set_keypress_callback(self.keypress_callback)
         self._terminal_buffer_is_open = True
         self._terminal_rows = 0
         self._terminal_columns = 0
@@ -120,10 +119,13 @@ class TerminalView:
         args = {"cmd": cmd, "title": title, "cwd": cwd, "syntax": syntax}
         self.view.settings().set("terminal_view_activate_args", args)
 
+        # Register the terminal view instance in the manager
+        TerminalViewManager.register(self.view.id(), self)
+
         # Start the main loop
         threading.Thread(target=self._main_update_loop).start()
 
-    def terminal_view_keypress_callback(self, key, ctrl=False, alt=False, shift=False, meta=False):
+    def keypress_callback(self, key, ctrl=False, alt=False, shift=False, meta=False):
         """
         Callback when a keypress is registered in the Sublime Terminal buffer.
 
