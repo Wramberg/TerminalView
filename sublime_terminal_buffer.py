@@ -292,8 +292,6 @@ class TerminalViewUpdate(sublime_plugin.TextCommand):
         # bottom
         self._update_cursor()
 
-        self.view.settings().set("terminal_view_last_update", time.time())
-
     def _update_viewport_position(self):
         self.view.set_viewport_position((0, 0), animate=False)
 
