@@ -6,7 +6,6 @@ import os
 import select
 import subprocess
 import struct
-import signal
 
 try:
     import fcntl
@@ -67,7 +66,6 @@ class LinuxPty():
             tiocswinsz = getattr(termios, 'TIOCSWINSZ', -2146929561)
             size_update = struct.pack('HHHH', lines, columns, 0, 0)
             fcntl.ioctl(self._pts, tiocswinsz, size_update)
-            os.kill(self._process.pid, signal.SIGWINCH)
 
     def is_running(self):
         """
