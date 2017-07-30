@@ -68,6 +68,9 @@ class PyteTerminalEmulator():
     def display(self):
         return self._screen.display
 
+    def bracketed_paste_mode_enabled(self):
+        return (2004 << 5) in self._screen.mode
+
 
 History = namedtuple("History", "top bottom ratio size position")
 Margins = namedtuple("Margins", "top bottom")

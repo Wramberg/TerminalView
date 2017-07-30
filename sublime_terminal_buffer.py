@@ -213,12 +213,17 @@ class TerminalViewCopy(sublime_plugin.TextCommand):
 
 
 class TerminalViewPaste(sublime_plugin.TextCommand):
-    def run(self, edit):
+    def run(self, edit, bracketed=False):
         # Lookup the sublime buffer instance for this view
-        sublime_buffer = SublimeBufferManager.load_from_id(self.view.id())
-        keypress_cb = sublime_buffer.keypress_callback()
+        sub_buffer = SublimeBufferManager.load_from_id(self.view.id())
+        keypress_cb = sub_buffer.keypress_callback()
         if not keypress_cb:
             return
+
+        # Check if bracketed paste mode is enabled
+        bracketed = bracketed or sub_buffer.terminal_emulator().bracketed_paste_mode_enabled()
+        if bracketed:
+            keypress_cb("bracketed_paste_mode_start")
 
         copied = sublime.get_clipboard()
         copied = copied.replace("\r\n", "\n")
@@ -229,6 +234,9 @@ class TerminalViewPaste(sublime_plugin.TextCommand):
                 keypress_cb("tab")
             else:
                 keypress_cb(char)
+
+        if bracketed:
+            keypress_cb("bracketed_paste_mode_end")
 
 
 class TerminalViewReporter(sublime_plugin.EventListener):

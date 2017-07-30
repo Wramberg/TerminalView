@@ -146,6 +146,8 @@ _LINUX_KEY_MAP = {
     "f9": "\x1b[20~",
     "f10": "\x1b[21~",
     "f12": "\x1b[24~",
+    "bracketed_paste_mode_start": "\x1b[200~",
+    "bracketed_paste_mode_end": "\x1b[201~",
 }
 
 _LINUX_CTRL_KEY_MAP = {
