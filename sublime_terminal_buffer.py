@@ -7,8 +7,9 @@ import time
 import sublime
 import sublime_plugin
 
-from . import terminal_emulator
+from . import pyte_terminal_emulator
 from . import utils
+from . import sublime_view_cache
 
 
 class SublimeBufferManager():
@@ -68,11 +69,11 @@ class SublimeTerminalBuffer():
         # Use pyte as underlying terminal emulator
         hist = settings.get("terminal_view_scroll_history", 1000)
         ratio = settings.get("terminal_view_scroll_ratio", 0.5)
-        self._term_emulator = terminal_emulator.PyteTerminalEmulator(80, 24, hist, ratio)
+        self._term_emulator = pyte_terminal_emulator.PyteTerminalEmulator(80, 24, hist, ratio)
 
         self._keypress_callback = None
-        self._color_regions = {}
-        self._buffer_contents = {}
+        self._view_content_cache = sublime_view_cache.SublimeViewContentCache()
+        self._view_region_cache = sublime_view_cache.SublimeViewRegionCache()
 
         # Register the new instance of the sublime buffer class so other
         # commands can look it up when they are called in the same sublime view
@@ -87,11 +88,11 @@ class SublimeTerminalBuffer():
     def keypress_callback(self):
         return self._keypress_callback
 
-    def color_regions(self):
-        return self._color_regions
+    def view_region_cache(self):
+        return self._view_region_cache
 
-    def buffer_contents(self):
-        return self._buffer_contents
+    def view_content_cache(self):
+        return self._view_content_cache
 
     def colors_enabled(self):
         return self._show_colors
@@ -119,6 +120,11 @@ class SublimeTerminalBuffer():
         self._keypress_callback = None
 
     def update_terminal_size(self, nb_rows, nb_cols):
+        # Make sure all content beyond the new number of rows is deleted
+        if nb_rows < self._term_emulator.nb_lines():
+            start, _ = self.view_content_cache().get_line_start_and_end_points(nb_rows)
+            self._view.run_command("terminal_view_clear", args={"start": start})
+
         self._term_emulator.resize(nb_rows, nb_cols)
 
     def view_size(self):
@@ -190,8 +196,10 @@ class TerminalViewKeypress(sublime_plugin.TextCommand):
         # Lookup the sublime buffer instance for this view
         sublime_buffer = SublimeBufferManager.load_from_id(self.view.id())
         keypress_cb = sublime_buffer.keypress_callback()
+        app_mode = sublime_buffer.terminal_emulator().application_mode_enabled()
         if keypress_cb:
-            keypress_cb(kwargs["key"], kwargs["ctrl"], kwargs["alt"], kwargs["shift"], kwargs["meta"])
+            keypress_cb(kwargs["key"], kwargs["ctrl"], kwargs["alt"],
+                        kwargs["shift"], kwargs["meta"], app_mode)
 
 
 class TerminalViewCopy(sublime_plugin.TextCommand):
@@ -349,49 +357,50 @@ class TerminalViewUpdate(sublime_plugin.TextCommand):
         self.view.set_read_only(True)
 
     def _remove_color_regions_on_line(self, line_no):
-        if line_no in self._sub_buffer.color_regions():
-            region_deque = self._sub_buffer.color_regions()[line_no]
-            try:
-                while True:
-                    region = region_deque.popleft()
-                    self.view.erase_regions(region)
-            except IndexError:
-                pass
+        view_region_cache = self._sub_buffer.view_region_cache()
+        if view_region_cache.has_line(line_no):
+            region_keys = view_region_cache.get_line(line_no)
+            for key in region_keys:
+                self.view.erase_regions(key)
+            view_region_cache.delete_line(line_no)
 
     def _update_line_content(self, edit, line_no, content):
         # Note this function has been optimized quite a bit. Calls to the ST3
         # API has been left out on purpose as they are slower than the
         # alternative.
 
-        # Get start and end point of the line
-        line_start, line_end = self._get_line_start_and_end_points(line_no)
+        # We need to add a newline otherwise ST3 does not break the line
+        content_w_newline = content + "\n"
+
+        # Check in our local buffer that the content line is different from what
+        # we are already showing - otherwise we can stop now
+        view_content_cache = self._sub_buffer.view_content_cache()
+        if view_content_cache.has_line(line_no):
+            if view_content_cache.get_line(line_no) == content_w_newline:
+                return
+
+        # Content is different - make ST3 region that spans the line. Start by
+        # geting start and end point of the line
+        line_start, line_end = view_content_cache.get_line_start_and_end_points(line_no)
 
         # Make region spanning entire line (including any newline at the end)
         line_region = sublime.Region(line_start, line_end)
-
-        if content is None:
-            self.view.erase(edit, line_region)
-            if line_no in self._sub_buffer.buffer_contents():
-                del self._sub_buffer.buffer_contents()[line_no]
-        else:
-            # Replace content on the line with new content
-            content_w_newline = content + "\n"
-            self.view.replace(edit, line_region, content_w_newline)
-
-            # Update our local copy of the ST3 view buffer
-            self._sub_buffer.buffer_contents()[line_no] = content_w_newline
+        self.view.replace(edit, line_region, content_w_newline)
+        view_content_cache.update_line(line_no, content_w_newline)
 
     def _update_line_colors(self, line_no, line_color_map):
         # Note this function has been optimized quite a bit. Calls to the ST3
         # API has been left out on purpose as they are slower than the
         # alternative.
+        view_region_cache = self._sub_buffer.view_region_cache()
+        view_content_cache = self._sub_buffer.view_content_cache()
 
         for idx, field in line_color_map.items():
             length = field["field_length"]
             color_scope = "terminalview.%s_%s" % (field["color"][0], field["color"][1])
 
             # Get text point where color should start
-            line_start, _ = self._get_line_start_and_end_points(line_no)
+            line_start, _ = view_content_cache.get_line_start_and_end_points(line_no)
             color_start = line_start + idx
 
             # Make region that should be colored
@@ -401,37 +410,16 @@ class TerminalViewUpdate(sublime_plugin.TextCommand):
             # Add the region
             flags = sublime.DRAW_NO_OUTLINE | sublime.PERSISTENT
             self.view.add_regions(region_key, [buffer_region], color_scope, flags=flags)
-            self._register_color_region(line_no, region_key)
-
-    def _register_color_region(self, line_no, key):
-        if line_no in self._sub_buffer.color_regions():
-            self._sub_buffer.color_regions()[line_no].appendleft(key)
-        else:
-            self._sub_buffer.color_regions()[line_no] = collections.deque()
-            self._sub_buffer.color_regions()[line_no].appendleft(key)
-
-    def _get_line_start_and_end_points(self, line_no):
-        start_point = 0
-
-        # Sum all lines leading up to the line we want the start point to
-        for i in range(line_no):
-            if i in self._sub_buffer.buffer_contents():
-                line_len = len(self._sub_buffer.buffer_contents()[i])
-                start_point = start_point + line_len
-
-        # Add length of line to the end_point
-        end_point = start_point
-        if line_no in self._sub_buffer.buffer_contents():
-            line_len = len(self._sub_buffer.buffer_contents()[line_no])
-            end_point = end_point + line_len
-
-        return (start_point, end_point)
+            view_region_cache.add(line_no, region_key)
 
 
 class TerminalViewClear(sublime_plugin.TextCommand):
-    def run(self, edit):
+    def run(self, edit, start=0, end=None):
+        if end is None:
+            end = self.view.size()
+
         self.view.set_read_only(False)
-        region = sublime.Region(0, self.view.size())
+        region = sublime.Region(start, end)
         self.view.erase(edit, region)
         self.view.set_read_only(True)
 

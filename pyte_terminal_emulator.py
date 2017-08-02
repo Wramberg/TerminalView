@@ -8,6 +8,8 @@ import math
 from . import pyte
 from .pyte import modes
 
+from . import GateOne
+
 
 class PyteTerminalEmulator():
     """
@@ -46,7 +48,7 @@ class PyteTerminalEmulator():
             for line in self._screen.dirty:
                 if line >= len(display):
                     # This happens when screen is resized smaller
-                    dirty_lines[line] = None
+                    break
                 else:
                     dirty_lines[line] = display[line]
 
@@ -71,6 +73,11 @@ class PyteTerminalEmulator():
     def bracketed_paste_mode_enabled(self):
         return (2004 << 5) in self._screen.mode
 
+    def application_mode_enabled(self):
+        return False
+
+    def nb_lines(self):
+        return self._screen.lines
 
 History = namedtuple("History", "top bottom ratio size position")
 Margins = namedtuple("Margins", "top bottom")
@@ -245,6 +252,16 @@ class CustomHistoryScreen(pyte.DiffScreen):
 def take(n, iterable):
     """Returns first n items of the iterable as a list."""
     return list(islice(iterable, n))
+
+
+def convert_go_renditions_to_colormap(renditions, renditions_store, lines):
+    out = []
+    for line in renditions:
+        line_rends = []
+        for rendition in line:
+            line_rends.append(renditions_store[rendition])
+        out.append(line_rends)
+    print(out)
 
 
 def convert_pyte_buffer_to_colormap(buffer, lines):
