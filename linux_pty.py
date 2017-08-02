@@ -6,6 +6,7 @@ import os
 import select
 import subprocess
 import struct
+import time
 
 try:
     import fcntl
@@ -18,7 +19,7 @@ from . import utils
 
 class LinuxPty():
     """
-    Linux PTY class that starts an underlying and provides methods for
+    Linux PTY class that starts an underlying shell and provides methods for
     communicating with it
     """
     def __init__(self, cmd, cwd):
@@ -40,6 +41,14 @@ class LinuxPty():
         """
         if self.is_running():
             self._process.kill()
+            start = time.time()
+            while self.is_running() and (time.time() < start + 0.1):
+                pass
+
+        if self.is_running():
+            utils.ConsoleLogger.log("Failed to stop shell process")
+        else:
+            utils.ConsoleLogger.log("Shell process stopped (%i)" % self._process.poll())
         self._process = None
         os.close(self._pts)
         os.close(self._pty)
@@ -73,7 +82,8 @@ class LinuxPty():
         """
         return self._process is not None and self._process.poll() is None
 
-    def send_keypress(self, key, ctrl=False, alt=False, shift=False, meta=False):
+    def send_keypress(self, key, ctrl=False, alt=False, shift=False, meta=False,
+                      app_mode=False):
         """
         Send keypress to the shell
         """
@@ -82,8 +92,12 @@ class LinuxPty():
         elif alt:
             keycode = self._get_alt_combination_key_code(key)
         else:
-            keycode = self._get_key_code(key)
+            if app_mode:
+                keycode = self._get_app_key_code(key)
+            else:
+                keycode = self._get_key_code(key)
 
+        print(app_mode)
         self.send_string(keycode)
 
     def send_string(self, string):
@@ -110,6 +124,11 @@ class LinuxPty():
 
         code = self._get_key_code(key)
         return "\x1b" + code
+
+    def _get_app_key_code(self, key):
+        if key in _LINUX_APP_KEY_MAP:
+            return _LINUX_APP_KEY_MAP[key]
+        return self._get_key_code(key)
 
     def _get_key_code(self, key):
         if key in _LINUX_KEY_MAP:
@@ -146,6 +165,13 @@ _LINUX_KEY_MAP = {
     "f12": "\x1b[24~",
     "bracketed_paste_mode_start": "\x1b[200~",
     "bracketed_paste_mode_end": "\x1b[201~",
+}
+
+_LINUX_APP_KEY_MAP = {
+    "down": "\x1bOB",
+    "up": "\x1bOA",
+    "right": "\x1bOC",
+    "left": "\x1bOD",
 }
 
 _LINUX_CTRL_KEY_MAP = {
