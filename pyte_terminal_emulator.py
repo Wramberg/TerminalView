@@ -68,6 +68,10 @@ class PyteTerminalEmulator():
     def display(self):
         return self._screen.display
 
+    def modified(self):
+        nb_dirty_lines = len(self._screen.dirty)
+        return nb_dirty_lines != 0
+
     def bracketed_paste_mode_enabled(self):
         return (2004 << 5) in self._screen.mode
 

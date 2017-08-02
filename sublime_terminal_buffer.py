@@ -108,7 +108,9 @@ class SublimeTerminalBuffer():
         utils.ConsoleLogger.log("Updated terminal emulator in %.3f ms" % (t * 1000.))
 
     def update_view(self):
-        self._view.run_command("terminal_view_update")
+        self._scroll_terminal_if_requested()
+        if self.terminal_emulator().modified():
+            self._view.run_command("terminal_view_update")
 
     def is_open(self):
         return self._view.is_valid()
@@ -147,6 +149,24 @@ class SublimeTerminalBuffer():
             nb_rows = 1
 
         return (nb_rows, nb_columns)
+
+    def _scroll_terminal_if_requested(self):
+        scroll_request = self._view.settings().get("terminal_view_scroll", None)
+        if scroll_request is not None:
+            index = scroll_request[0]
+            direction = scroll_request[1]
+            if index == "line":
+                if direction == "up":
+                    self.terminal_emulator().prev_line()
+                else:
+                    self.terminal_emulator().next_line()
+            else:
+                if direction == "up":
+                    self.terminal_emulator().prev_page()
+                else:
+                    self.terminal_emulator().next_page()
+
+            self._view.settings().set("terminal_view_scroll", None)
 
 
 class TerminalViewScroll(sublime_plugin.TextCommand):
@@ -279,8 +299,6 @@ class TerminalViewUpdate(sublime_plugin.TextCommand):
         if self._sub_buffer is None:
             self._sub_buffer = SublimeBufferManager.load_from_id(self.view.id())
 
-        self._update_scrolling()
-
         # Update dirty lines in buffer if there are any
         dirty_lines = self._sub_buffer.terminal_emulator().dirty_lines()
         if len(dirty_lines) > 0:
@@ -311,24 +329,6 @@ class TerminalViewUpdate(sublime_plugin.TextCommand):
 
     def _update_viewport_position(self):
         self.view.set_viewport_position((0, 0), animate=False)
-
-    def _update_scrolling(self):
-        scroll_request = self.view.settings().get("terminal_view_scroll", None)
-        if scroll_request is not None:
-            index = scroll_request[0]
-            direction = scroll_request[1]
-            if index == "line":
-                if direction == "up":
-                    self._sub_buffer.terminal_emulator().prev_line()
-                else:
-                    self._sub_buffer.terminal_emulator().next_line()
-            else:
-                if direction == "up":
-                    self._sub_buffer.terminal_emulator().prev_page()
-                else:
-                    self._sub_buffer.terminal_emulator().next_page()
-
-            self.view.settings().set("terminal_view_scroll", None)
 
     def _update_cursor(self):
         cursor_pos = self._sub_buffer.terminal_emulator().cursor()
