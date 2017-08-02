@@ -7,6 +7,7 @@ import time
 import sublime
 import sublime_plugin
 
+from . import gateone_terminal_emulator
 from . import pyte_terminal_emulator
 from . import utils
 from . import sublime_view_cache
