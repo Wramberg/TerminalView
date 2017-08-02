@@ -97,7 +97,6 @@ class LinuxPty():
             else:
                 keycode = self._get_key_code(key)
 
-        print(app_mode)
         self.send_string(keycode)
 
     def send_string(self, string):
