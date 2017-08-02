@@ -19,24 +19,29 @@ class PyteTerminalEmulator():
         self._screen = CustomHistoryScreen(cols, lines, history * 2, ratio)
         self._bytestream = pyte.ByteStream()
         self._bytestream.attach(self._screen)
+        self._modified = True
 
     def feed(self, data):
         self._screen.scroll_to_bottom()
         self._bytestream.feed(data)
+        self._modified = True
 
     def resize(self, lines, cols):
         self._screen.scroll_to_bottom()
         dirty_lines = max(lines, self._screen.lines)
         self._screen.dirty.update(range(dirty_lines))
+        self._modified = True
         return self._screen.resize(lines, cols)
 
     def prev_page(self):
         self._screen.prev_page()
         self._screen.ensure_screen_width()
+        self._modified = True
 
     def next_page(self):
         self._screen.next_page()
         self._screen.ensure_screen_width()
+        self._modified = True
 
     def dirty_lines(self):
         dirty_lines = {}
@@ -53,6 +58,7 @@ class PyteTerminalEmulator():
         return dirty_lines
 
     def clear_dirty(self):
+        self._modified = False
         return self._screen.dirty.clear()
 
     def cursor(self):
@@ -69,8 +75,7 @@ class PyteTerminalEmulator():
         return self._screen.display
 
     def modified(self):
-        nb_dirty_lines = len(self._screen.dirty)
-        return nb_dirty_lines != 0
+        return self._modified
 
     def bracketed_paste_mode_enabled(self):
         return (2004 << 5) in self._screen.mode

@@ -318,7 +318,6 @@ class TerminalViewUpdate(sublime_plugin.TextCommand):
             # Update the view
             start = time.time()
             self._update_lines(edit, dirty_lines, color_map)
-            self._sub_buffer.terminal_emulator().clear_dirty()
             t = time.time() - start
             utils.ConsoleLogger.log("Updated ST3 view in %.3f ms" % (t * 1000.))
 
@@ -326,6 +325,9 @@ class TerminalViewUpdate(sublime_plugin.TextCommand):
         # terminal when starting or when a new prompt is being drawn at the
         # bottom
         self._update_cursor()
+
+        # Clear dirty lines (and modified flag)
+        self._sub_buffer.terminal_emulator().clear_dirty()
 
     def _update_viewport_position(self):
         self.view.set_viewport_position((0, 0), animate=False)
