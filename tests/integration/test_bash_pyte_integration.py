@@ -36,7 +36,7 @@ class NanoSuspendResumeTest(unittest.TestCase):
         self.term_emulator = pyte_terminal_emulator.PyteTerminalEmulator(10, 10, 1000, 0.5)
 
         # Start the shell
-        self.linux_pty_bash = linux_pty.LinuxPty(["/bin/bash", "-l"], self.home_dir)
+        self.linux_pty_bash = linux_pty.LinuxPty("/bin/bash", self.home_dir)
         self.assertTrue(self.linux_pty_bash.is_running())
 
         # Update screen size
