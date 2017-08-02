@@ -8,8 +8,6 @@ import math
 from . import pyte
 from .pyte import modes
 
-from . import GateOne
-
 
 class PyteTerminalEmulator():
     """
