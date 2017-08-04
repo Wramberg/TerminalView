@@ -80,7 +80,23 @@ class TerminalViewOpen(sublime_plugin.WindowCommand):
 class TerminalViewActivate(sublime_plugin.TextCommand):
     def run(self, _, cmd, title, cwd, syntax):
         terminal_view = TerminalView(self.view)
-        terminal_view.run(cmd, title, cwd, syntax)
+        try:
+            terminal_view.run(cmd, title, cwd, syntax)
+            return
+        except FileNotFoundError:
+            print("TerminalView: Failed to open {}. "
+                  "Reverting to home directory.".format(cwd))
+            # Note that this exception is only thrown from within LinuxPty,
+            # at which point the registration to the manager hasn't happened
+            # yet, so we don't have to deregister.
+        cwd = os.environ["HOME"]
+        try:
+            terminal_view.run(cmd, title, cwd, syntax)
+            return
+        except FileNotFoundError:
+            print("TerminalView: Failed to open {}. "
+                  "Reverting to root directory.".format(cwd))
+        terminal_view.run(cmd, title, "/", syntax)
 
 
 class TerminalView:
@@ -101,6 +117,10 @@ class TerminalView:
         self._cmd = cmd
         self._cwd = cwd
 
+        # Start the underlying shell
+        self._shell = linux_pty.LinuxPty(self._cmd.split(), self._cwd)
+        self._shell_is_running = True
+
         # Initialize the sublime view
         self._terminal_buffer = \
             sublime_terminal_buffer.SublimeTerminalBuffer(self.view, title, syntax)
@@ -108,10 +128,6 @@ class TerminalView:
         self._terminal_buffer_is_open = True
         self._terminal_rows = 0
         self._terminal_columns = 0
-
-        # Start the underlying shell
-        self._shell = linux_pty.LinuxPty(self._cmd.split(), self._cwd)
-        self._shell_is_running = True
 
         # Save the command args in view settings so it can restarted when ST3 is
         # restarted (or when changing back to a project that had a terminal view
