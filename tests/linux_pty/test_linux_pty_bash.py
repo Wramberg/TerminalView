@@ -18,14 +18,14 @@ class BashTestBase(unittest.TestCase):
         Start bash shell
         """
         cwd = os.path.dirname(os.path.abspath(__file__))
-        self.linux_pty_bash = linux_pty.LinuxPty("/bin/bash", cwd)
+        self.linux_pty_bash = linux_pty.LinuxPty(["/bin/bash"], cwd)
         self.assertTrue(self.linux_pty_bash.is_running())
 
         # Update screen size to avoid wrapping during test
         self.linux_pty_bash.update_screen_size(80, 500)
 
         # Read the initial prompt - note this has to be placed after resize
-        self.linux_pty_bash.receive_output(1024, timeout=1)
+        data = self.linux_pty_bash.receive_output(4096, timeout=1)
 
     def tearDown(self):
         """

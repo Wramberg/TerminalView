@@ -12,7 +12,7 @@ from TerminalView import linux_pty
 class NanoSuspendResumeTest(unittest.TestCase):
     def test_suspend_resume(self):
         """
-        Test that nano can be suspended and resumed. Pyte has had trouble with
+        Test that nano can be suspended and resumed. Pyte has had trouble w#ith
         this so this test is here to ensure that the bug does not re-appear.
         """
         # Get some environment vars
@@ -36,7 +36,7 @@ class NanoSuspendResumeTest(unittest.TestCase):
         self.term_emulator = pyte_terminal_emulator.PyteTerminalEmulator(10, 10, 1000, 0.5)
 
         # Start the shell
-        self.linux_pty_bash = linux_pty.LinuxPty("/bin/bash", self.home_dir)
+        self.linux_pty_bash = linux_pty.LinuxPty(["/bin/bash"], self.home_dir)
         self.assertTrue(self.linux_pty_bash.is_running())
 
         # Update screen size
