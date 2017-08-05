@@ -185,7 +185,7 @@ For example, consider this `.sublime-project`:
 }
 ```
 
-When you click on *Tools* -> *Build With...* in the menu, you may select the *My Build - Run program* variant. This opens an output panel and runs your program. Unfortunately, if the program requires input from user, this cannot be parsed to it. To solve this you can change the variant to:
+When you click on *Tools* -> *Build With...* in the menu, you may select the *My Build - Run program* variant. This opens an output panel and runs your program. Unfortunately, if the program requires input from the user it cannot be provided. To solve this you can change the variant to:
 
 ```
 {
