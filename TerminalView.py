@@ -45,7 +45,12 @@ class TerminalViewOpen(sublime_plugin.WindowCommand):
     class per sublime window. Once a terminal view has been opened the
     TerminalViewActivate instance for that view is called to handle everything.
     """
-    def run(self, cmd="/bin/bash -l", title="Terminal", cwd=None, syntax=None):
+    def run(self,
+            cmd="/bin/bash -l",
+            title="Terminal",
+            cwd=None,
+            syntax=None,
+            keep_open=False):
         """
         Open a new terminal view
 
@@ -74,7 +79,9 @@ class TerminalViewOpen(sublime_plugin.WindowCommand):
             cwd = "/"
 
         args = {"cmd": cmd, "title": title, "cwd": cwd, "syntax": syntax}
-        self.window.new_file().run_command("terminal_view_activate", args=args)
+        view = self.window.new_file()
+        view.settings().set("terminal_view_keep_open", keep_open)
+        view.run_command("terminal_view_activate", args=args)
 
 
 class TerminalViewActivate(sublime_plugin.TextCommand):
@@ -170,10 +177,9 @@ class TerminalView:
             self._poll_shell_output()
             self._terminal_buffer.update_view()
             self._resize_screen_if_needed()
-            if (not self._terminal_buffer.is_open()) or (not self._shell.is_running()):
-                self._stop()
+            if not self._shell.is_running():
+                self._poll_shell_output(timeout=0)
                 break
-
             # We use hard sleep here instead of any fancy timeout on the polling
             # to avoid excessive amounts of updates. When you hit enter for
             # example, the shell sends 2 bytes first (\r\n) and then the new
@@ -185,12 +191,13 @@ class TerminalView:
             time_left = ideal_delta - actual_delta
             if time_left > 0.0:
                 time.sleep(time_left)
+        self._stop()
 
     def _poll_shell_output(self, timeout=0):
         """
         Poll the output of the shell
         """
-        max_read_size = 4096
+        max_read_size = 2**12
         data = self._shell.receive_output(max_read_size, timeout=timeout)
         if data is not None:
             utils.ConsoleLogger.log("Got %u bytes of data from shell" % (len(data), ))
