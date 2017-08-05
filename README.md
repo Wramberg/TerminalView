@@ -7,8 +7,15 @@ A Linux/macOS plugin for Sublime Text 3 that allows for terminals inside editor 
 * Interactive applications (less, man, ipython, ssh, etc.)
 * Auto-completion
 * Terminal shortcuts (`ctrl`+`c`, etc.)
-* Password prompts
 * Basically everything you would expect from a terminal
+
+Besides this it also supports
+
+* Integration with the Sublime Text build system
+* Shell colors (8 color support for now - development for 256 is planned)
+* Scrollback history
+* Copy/Pasting
+* Static syntax highlighting (as an addition to shell colors)
 
 **Note, if you encounter any issues please check the "Common problems" section at the bottom for a solution.**
 
