@@ -24,6 +24,8 @@ class LinuxPty():
     communicating with it
     """
     def __init__(self, cmd, cwd):
+        self._cmd_return_code = 0
+        self._cmd_kill_signal = 0
         self._shell_pid, self._master_fd = pty.fork()
         if self._shell_pid == pty.CHILD:
             os.environ["TERM"] = "linux"
@@ -83,9 +85,18 @@ class LinuxPty():
         """
         try:
             pid, status = os.waitpid(self._shell_pid, os.WNOHANG)
+            ret_code = (status >> 8) & 0x00ff
+            kill_signal = status & 0x00ff
+            if kill_signal > 0:
+                kill_signal = kill_signal - 128
+            self._cmd_return_code = ret_code
+            self._cmd_kill_signal = kill_signal
         except OSError:
             return False
         return True
+
+    def exit_status(self):
+        return self._cmd_return_code, self._cmd_kill_signal
 
     def send_keypress(self, key, ctrl=False, alt=False, shift=False, meta=False,
                       app_mode=False):

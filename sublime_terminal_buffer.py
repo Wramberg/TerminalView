@@ -40,7 +40,6 @@ class SublimeBufferManager():
 class SublimeTerminalBuffer():
     def __init__(self, sublime_view, title, syntax_file=None):
         self._view = sublime_view
-        self._startup_time = time.time()
         self._view.set_name(title)
         self._view.set_scratch(True)
         self._view.set_read_only(True)
@@ -116,17 +115,16 @@ class SublimeTerminalBuffer():
     def is_open(self):
         return self._view.is_valid()
 
+    def deactivate(self):
+        self._view.settings().set("terminal_view", False)
+        self.update_view()
+        self._keypress_callback = None
+        SublimeBufferManager.deregister(self._view.id())
+
     def close(self):
-        if self._view.settings().get("terminal_view_keep_open", False):
-            t = time.time() - self._startup_time
-            msg = "[Finished in {0:0.1f}s]".format(t).encode("ascii")
-            self._term_emulator.feed(msg)
-            self.update_view()
-        elif self.is_open():
+        if self.is_open():
             sublime.active_window().focus_view(self._view)
             sublime.active_window().run_command("close_file")
-        SublimeBufferManager.deregister(self._view.id())
-        self._keypress_callback = None
 
     def update_terminal_size(self, nb_rows, nb_cols):
         # Make sure all content beyond the new number of rows is deleted
@@ -193,17 +191,15 @@ class TerminalViewScroll(sublime_plugin.TextCommand):
 
 
 class TerminalViewKeypress(sublime_plugin.TextCommand):
-
-    def is_enabled(self):
-        try:
-            self._sub_buffer = SublimeBufferManager.load_from_id(self.view.id())
-            return True
-        except Exception as e:
-            return False
+    def __init__(self, view):
+        super().__init__(view)
+        self._sub_buffer = None
 
     def run(self, _, **kwargs):
-        if not self._sub_buffer:
-            return
+        # Lookup the sublime buffer instance for this view the first time this
+        # command is called
+        if self._sub_buffer is None:
+            self._sub_buffer = SublimeBufferManager.load_from_id(self.view.id())
 
         if type(kwargs["key"]) is not str:
             sublime.error_message("Terminal View: Got keypress with non-string key")

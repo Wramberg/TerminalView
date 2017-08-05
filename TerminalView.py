@@ -63,6 +63,7 @@ class TerminalViewOpen(sublime_plugin.WindowCommand):
                                  precedence. You may pass arbitrary snippet-like
                                  variables.
             syntax (str, optional): Syntax file to use in the view.
+            keep_open (bool, optional): Keep view open after cmd exits.
         """
         if sublime.platform() not in ("linux", "osx"):
             sublime.error_message("TerminalView: Unsupported OS")
@@ -78,32 +79,24 @@ class TerminalViewOpen(sublime_plugin.WindowCommand):
             # Last resort
             cwd = "/"
 
-        args = {"cmd": cmd, "title": title, "cwd": cwd, "syntax": syntax}
-        view = self.window.new_file()
-        view.settings().set("terminal_view_keep_open", keep_open)
-        view.run_command("terminal_view_activate", args=args)
+        args = {"cmd": cmd, "title": title, "cwd": cwd, "syntax": syntax, "keep_open": keep_open}
+        self.window.new_file().run_command("terminal_view_activate", args=args)
 
 
 class TerminalViewActivate(sublime_plugin.TextCommand):
-    def run(self, _, cmd, title, cwd, syntax):
+    def run(self, _, cmd, title, cwd, syntax, keep_open):
         terminal_view = TerminalView(self.view)
         try:
-            terminal_view.run(cmd, title, cwd, syntax)
-            return
+            terminal_view.run(cmd, title, cwd, syntax, keep_open)
         except FileNotFoundError:
-            print("TerminalView: Failed to open {}. "
-                  "Reverting to home directory.".format(cwd))
             # Note that this exception is only thrown from within LinuxPty,
             # at which point the registration to the manager hasn't happened
             # yet, so we don't have to deregister.
-        cwd = os.environ["HOME"]
-        try:
-            terminal_view.run(cmd, title, cwd, syntax)
-            return
-        except FileNotFoundError:
-            print("TerminalView: Failed to open {}. "
-                  "Reverting to root directory.".format(cwd))
-        terminal_view.run(cmd, title, "/", syntax)
+            print("TerminalView: Failed to open {}. Reverting to home/root dir.".format(cwd))
+            cwd = os.environ.get("HOME", None)
+            if not cwd:
+                cwd = "/"
+            terminal_view.run(cmd, title, cwd, syntax, keep_open)
 
 
 class TerminalView:
@@ -117,12 +110,13 @@ class TerminalView:
     def __del__(self):
         utils.ConsoleLogger.log("Terminal view instance deleted")
 
-    def run(self, cmd, title, cwd, syntax):
+    def run(self, cmd, title, cwd, syntax, keep_open):
         """
         Initialize the view as a terminal view.
         """
         self._cmd = cmd
         self._cwd = cwd
+        self._keep_open = keep_open
 
         # Start the underlying shell
         self._shell = linux_pty.LinuxPty(self._cmd.split(), self._cwd)
@@ -139,7 +133,7 @@ class TerminalView:
         # Save the command args in view settings so it can restarted when ST3 is
         # restarted (or when changing back to a project that had a terminal view
         # open)
-        args = {"cmd": cmd, "title": title, "cwd": cwd, "syntax": syntax}
+        args = {"cmd": cmd, "title": title, "cwd": cwd, "syntax": syntax, "keep_open": keep_open}
         self.view.settings().set("terminal_view_activate_args", args)
 
         # Register the terminal view instance in the manager
@@ -173,24 +167,33 @@ class TerminalView:
         # 30 frames per second should be responsive enough
         ideal_delta = 1.0 / 30.0
         current = time.time()
+        start_time = current
         while True:
             self._poll_shell_output()
             self._terminal_buffer.update_view()
             self._resize_screen_if_needed()
             if not self._shell.is_running():
-                self._poll_shell_output(timeout=0)
+                self._poll_shell_output()
                 break
+
+            if not self._terminal_buffer.is_open():
+                break
+
             # We use hard sleep here instead of any fancy timeout on the polling
             # to avoid excessive amounts of updates. When you hit enter for
             # example, the shell sends 2 bytes first (\r\n) and then the new
-            # prompt. We do not want to trigger to two updates in this case as
-            # the bottom line of terminal will appear to blink quickly.
+            # prompt. We do not want to trigger two updates in this case as the
+            # bottom line of terminal will appear to blink quickly.
             previous = current
             current = time.time()
             actual_delta = current - previous
             time_left = ideal_delta - actual_delta
             if time_left > 0.0:
                 time.sleep(time_left)
+
+        # Notify user that cmd has exitted
+        run_time = time.time() - start_time
+        self._show_close_message_in_terminal(run_time)
         self._stop()
 
     def _poll_shell_output(self, timeout=0):
@@ -222,17 +225,36 @@ class TerminalView:
             self._shell.update_screen_size(self._terminal_rows, self._terminal_columns)
             self._terminal_buffer.update_terminal_size(self._terminal_rows, self._terminal_columns)
 
+    def _show_close_message_in_terminal(self, run_time):
+        ret_code, signal = self._shell.exit_status()
+        if signal > 0:
+            close_reason = "terminated"
+            close_msg = "by signal %i (%s)." % (signal, utils.unix_signal_name(signal))
+        else:
+            close_reason = "finished"
+            close_msg = "with return code %i." % (ret_code, )
+
+        msg = "\r\nTerminalView: Command %s after %.3f seconds " % (close_reason, run_time)
+        msg += close_msg
+        self._terminal_buffer.insert_data(msg.encode("utf-8"))
+
     def _stop(self):
         """
         Stop the terminal and close everything down.
         """
-        self._terminal_buffer.close()
-        self._terminal_buffer_is_open = False
+        self._terminal_buffer.deactivate()
+        if not self._keep_open:
+            self._terminal_buffer.close()
+            self._terminal_buffer_is_open = False
+
         self._shell.stop()
         self._shell_is_running = False
 
         # When stopping deregister in the manager
         TerminalViewManager.deregister(self.view.id())
+
+        # If view is kept open ensure it is not restarted
+        self.view.settings().erase("terminal_view_activate_args")
 
 
 def plugin_loaded():
