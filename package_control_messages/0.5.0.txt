@@ -9,3 +9,4 @@ TerminalView was just updated with the following changes:
 * Improved run-loop with less CPU usage at idle
 * Support for bracketed paste mode
 * The ST3 cursor can now be snapped back to position by pressing the escape key
+* Support for other plugins sending data to terminal views
