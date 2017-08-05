@@ -3,5 +3,7 @@
     "0.2.0": "package_control_messages/0.2.0.txt",
     "0.3.0": "package_control_messages/0.3.0.txt",
     "0.4.0": "package_control_messages/0.4.0.txt",
-    "0.4.1": "package_control_messages/0.4.1.txt"
+    "0.4.1": "package_control_messages/0.4.1.txt",
+    "0.4.2": "package_control_messages/0.4.2.txt",
+    "0.5.0": "package_control_messages/0.5.0.txt"
 }

@@ -1,0 +1,11 @@
+0.5.0
+-----
+TerminalView was just updated with the following changes:
+
+* Improved support for fish, zsh and other shells
+* Integration with the Sublime Text build system
+* Settings can now be accessed through the command palette
+* Settings now include an option for adjusting terminal margins (this can be used to avoid scrollbars)
+* Improved run-loop with less CPU usage at idle
+* Support for bracketed paste mode
+* The ST3 cursor can now be snapped back to position by pressing the escape key
