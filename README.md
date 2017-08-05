@@ -2,7 +2,11 @@
 
 [![Build Status](https://travis-ci.org/Wramberg/TerminalView.svg?branch=master)](https://travis-ci.org/Wramberg/TerminalView)
 
-A Linux/macOS plugin for Sublime Text 3 that allows for terminals inside editor views. The plugin uses a pseudo-terminal to start the underlying shell which means it supports
+A Linux/macOS plugin for Sublime Text 3 that allows for terminals inside editor views.
+
+![example.gif](https://raw.githubusercontent.com/Wramberg/TerminalView/master/example.gif "TerminalView Demonstration")
+
+The plugin uses a pseudo-terminal to start the underlying shell which means it supports
 
 * Interactive applications (less, man, ipython, ssh, etc.)
 * Auto-completion
@@ -18,8 +22,6 @@ Besides this it also supports
 * Static syntax highlighting (as an addition to shell colors)
 
 **Note, if you encounter any issues please check the "Common problems" section at the bottom for a solution.**
-
-![example.gif](https://raw.githubusercontent.com/Wramberg/TerminalView/master/example.gif "TerminalView Demonstration")
 
 ## Dependencies
 To run this plugin you need
