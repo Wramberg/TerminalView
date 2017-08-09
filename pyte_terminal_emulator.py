@@ -25,7 +25,6 @@ class PyteTerminalEmulator():
         self._screen.scroll_to_bottom()
         self._bytestream.feed(data)
         self._modified = True
-        print(self._screen.tabstops)
 
     def resize(self, lines, cols):
         self._screen.scroll_to_bottom()
