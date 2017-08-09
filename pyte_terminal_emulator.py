@@ -25,6 +25,7 @@ class PyteTerminalEmulator():
         self._screen.scroll_to_bottom()
         self._bytestream.feed(data)
         self._modified = True
+        print(self._screen.tabstops)
 
     def resize(self, lines, cols):
         self._screen.scroll_to_bottom()
@@ -103,6 +104,15 @@ class CustomHistoryScreen(pyte.DiffScreen):
                                history)
 
         super(CustomHistoryScreen, self).__init__(columns, lines)
+
+        # We do not agree with pyte about default tabstops
+        self.tabstops = set(range(8, self.columns, 8))
+
+    def reset(self):
+        super(CustomHistoryScreen, self).reset()
+
+        # Reset tab stops
+        self.tabstops = set(range(8, self.columns, 8))
 
     def scroll_to_bottom(self):
         """
@@ -254,6 +264,9 @@ class CustomHistoryScreen(pyte.DiffScreen):
 
         # JW tweak - move cursor upwards if its out of bounds do not reset it
         self.ensure_bounds(use_margins=True)
+
+        # Update tabstops to new screen size
+        self.tabstops = set(range(8, self.columns, 8))
 
 
 def take(n, iterable):
