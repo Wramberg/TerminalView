@@ -13,13 +13,14 @@ The plugin uses a pseudo-terminal to start the underlying shell which means it s
 * Terminal shortcuts (`ctrl`+`c`, etc.)
 * Basically everything you would expect from a terminal
 
-Besides this it also supports
+In addition it also supports
 
 * Integration with the Sublime Text build system
 * Shell colors (8 color support for now - development for 256 is planned)
 * Scrollback history
 * Copy/Pasting
 * Static syntax highlighting (as an addition to shell colors)
+* Integration with other plugins
 
 **Note, if you encounter any issues please check the "Common problems" section at the bottom for a solution.**
 
@@ -118,7 +119,7 @@ If you really want to avoid using bash you can also run your shell directly:
 { "keys": ["ctrl+alt+t"], "command": "terminal_view_open", "args": {"cmd": "/usr/bin/ipython", "title": "Terminal (IPython)"}},
 ```
 
-but this is **very experimental**. Some future development regarding this is planned, but at the moment only bash is tested.
+but this is **experimental**. Some future development regarding this is planned, but at the moment only bash is tested.
 
 When you are done you can close the terminal by closing the view (`ctrl`+`shift`+`q` or `ctrl`+`shift`+`w` as default) or exiting the shell (by e.g. hitting `ctrl`+`d`).
 
@@ -197,6 +198,27 @@ When you click on *Tools* -> *Build With...* in the menu, you may select the *My
 ```
 
 This runs your program inside a TerminalView instead where you can interact with it.
+
+## Integration with other plugins
+TerminalView supports integration with other plugins through the **terminal\_view\_send\_string** and **terminal\_view\_exec** commands. The former can be used to send a string to a running terminal while the latter opens a new terminal. For example, to run 'ls' in a terminal that is already open run
+
+```
+window.run_command("terminal_view_send_string", {"string": "ls\n"})
+```
+
+To run a command in a new terminal run
+
+```
+window.run_command("terminal_view_exec", {"cmd": "a.out"})
+```
+
+For details refer to the source code for now.
+
+## List of plugins that integrate with TerminalView
+The following is a list of known plugins that integrate with TerminalView.
+
+* SendCode by randy3k (https://github.com/randy3k/SendCode)
+* ShellVE by bfelder (https://github.com/bfelder/ShellVE)
 
 ## Common problems
 List of common problems you may encounter when using this plugin.
