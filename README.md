@@ -200,7 +200,7 @@ When you click on *Tools* -> *Build With...* in the menu, you may select the *My
 This runs your program inside a TerminalView instead where you can interact with it.
 
 ## Integration with other plugins
-TerminalView supports integration with other plugins through the **terminal\_view\_send\_string** and **terminal\_view\_exec** commands. The former can be used to send a string to a running terminal while the latter opens a new terminal. For example, to run 'ls' in a terminal that is already open run
+TerminalView supports integration with other plugins through the *terminal\_view\_send\_string* and *terminal\_view\_exec* commands. The former can be used to send a string to a running terminal while the latter opens a new terminal. For example, to run 'ls' in a terminal that is already open run
 
 ```
 window.run_command("terminal_view_send_string", {"string": "ls\n"})

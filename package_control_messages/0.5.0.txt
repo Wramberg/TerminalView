@@ -10,3 +10,4 @@ TerminalView was just updated with the following changes:
 * Support for bracketed paste mode
 * The ST3 cursor can now be snapped back to position by pressing the escape key
 * Support for other plugins sending data to terminal views
+* Fix for tab stops which improves the output of e.g. 'ls' on macOS
