@@ -40,7 +40,6 @@ class PyteTerminalEmulator():
 
     def next_page(self):
         self._screen.next_page()
-        self._screen.ensure_screen_width()
         self._modified = True
 
     def dirty_lines(self):
@@ -225,6 +224,8 @@ class CustomHistoryScreen(pyte.DiffScreen):
             ]
 
             self.dirty = set(range(self.lines))
+
+        self.ensure_screen_width()
 
     def resize(self, lines=None, columns=None):
         lines = lines or self.lines
