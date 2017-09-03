@@ -2,13 +2,13 @@
   {
     "caption": "Terminal View: Open Bash Terminal",
     "command": "terminal_view_open",
-    "args"   : {"title": "Terminal (bash)", "cmd": "/bin/bash -l"},
+    "args"   : {"title": "Terminal (bash)"},
   },
   // Example of a new command that can be added to the pallete
   // {
   //   "caption": "Terminal View: Open IPython Terminal",
   //   "command": "terminal_view_open",
-  //   "args"   : {"title": "Terminal (IPython)", "cmd": "/bin/bash -l -c /usr/bin/ipython"},
+  //   "args"   : {"title": "Terminal (IPython)", "cmd": ["/bin/bash", "-l", "-c", "/usr/bin/ipython"]},
   // },
   {
     "caption": "Preferences: Terminal View: Settings",

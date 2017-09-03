@@ -151,7 +151,7 @@ contexts:
 The matching could be improved upon but it will do for the purpose of this example. Note that the scope names are chosen so they match with scopes that are already defined in the color scheme. To change the color scheme see the "color scheme" section above. In this example the syntax file was saved as *bash.sublime-syntax* under the *Packages/User* folder. To use it when opening a bash terminal pass it to the *terminal_view_open* command with the *syntax* argument:
 
 ```
-{ "keys": ["ctrl+alt+t"], "command": "terminal_view_open", "args": {"cmd": "/bin/bash -l", "title": "Bash Terminal", "syntax": "bash.sublime-syntax"}},
+{ "keys": ["ctrl+alt+t"], "command": "terminal_view_open", "args": {"cmd": ["/bin/bash", "-l"], "title": "Bash Terminal", "syntax": "bash.sublime-syntax"}},
 ```
 
 There are currently no syntax-files provided with the plugin so users must create their own. Note that any colors set by shell (except the black/white default) override colors set by the syntax highlighting.
