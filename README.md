@@ -2,6 +2,10 @@
 
 [![Build Status](https://travis-ci.org/Wramberg/TerminalView.svg?branch=master)](https://travis-ci.org/Wramberg/TerminalView)
 
+## THIS PLUGIN IS DEAD!
+
+I am no longer using Sublime Text and do not have the time to support this plugin. There is a new alternative called Terminus (https://github.com/randy3k/Terminus) which is active at the time of writing.
+
 A Linux/macOS plugin for Sublime Text 3 that allows for terminals inside editor views.
 
 ![example.gif](https://raw.githubusercontent.com/Wramberg/TerminalView/master/example.gif "TerminalView Demonstration")
